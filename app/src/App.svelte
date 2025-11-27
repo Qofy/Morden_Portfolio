@@ -1,8 +1,8 @@
 <script lang="ts">
   import Header from './component/Header.svelte';
-  import Hero from './component/ProductSizeSlector.svelte';
-  import WorkExperience from './component/ProductHeader.svelte';
-  import ChatBot from './component/ProductColorSlector.svelte';
+  import Hero from './component/Hero.svelte';
+  import WorkExperience from './component/WorkExperience.svelte';
+  import ChatBot from './component/ChatBot.svelte';
   import Footer from './pages/Footer.svelte';
 </script>
 
