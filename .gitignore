@@ -1,0 +1,24 @@
+target
+Cargo.lock
+node_modules
+.dir_bash_history
+bun.lock
+.yarn
+package-lock.json
+test-results
+app/dist/
+<<<<<<< HEAD
+dist
+backend
+referenc_slice
+=======
+node_modules/
+dist/
+build/
+__tests__/
+npm-debug.log*
+.cache/
+*.cache/
+*.tmp
+.temp_keys
+>>>>>>> cf0d751084776de9befee9903d2f0a7854904626

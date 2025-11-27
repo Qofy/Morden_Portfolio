@@ -1,0 +1,54 @@
+target
+Cargo.lock
+node_modules
+.dir_bash_history
+bun.lock
+.yarn
+package-lock.json
+test-results
+app/dist/
+<<<<<<< HEAD
+dist
+backend
+referenc_slice
+=======
+# Node modules
+node_modules/
+
+# Build output
+dist/
+build/
+
+# SvelteKit output
+.app/
+.output/
+.vercel/
+
+# Rust/WASM build output
+wasm-logic/target/
+wasm-logic/pkg/
+
+# App folder if it's generated
+app/
+
+# Test cache
+__tests__/
+
+# macOS junk files
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+.temp_keys
+*.tmp
+*.cache
+.cache/
+
+# Git folders we don’t want
+.git/
+
+
+>>>>>>> cf0d751084776de9befee9903d2f0a7854904626
