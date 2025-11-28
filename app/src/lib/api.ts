@@ -1,7 +1,7 @@
 import { systemPrompt } from './data';
 
 const OLLAMA_API_URL = 'http://localhost:11434/api/generate';
-const MODEL_NAME = 'qwen2.5:0.5b'; // Lightweight model for fast responses
+const MODEL_NAME = 'qwen2.5:0.5b'; 
 
 export interface OllamaResponse {
   model: string;
