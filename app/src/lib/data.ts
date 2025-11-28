@@ -4,15 +4,15 @@ export const portfolioData = {
     title: "Full Stack Developer",
     location: "Ghana 🇬🇭",
     bio: "I like to build web applications, solve complex problems and continuously learn new technologies.",
-    photo: "/profile.jpg", 
+    photo: "/assets/profile/profile.png", 
     resumeUrl: "/resume.pdf" 
   },
 
   socialLinks: [
     { name: "Resume", icon: "file-text", url: "#resume" },
-    { name: "LinkedIn", icon: "linkedin", url: "https://linkedin.com/in/yourprofile" },
-    { name: "GitHub", icon: "github", url: "https://github.com/yourusername" },
-    { name: "Email", icon: "mail", url: "mailto:your.email@example.com" }
+    { name: "LinkedIn", icon: "linkedin", url: "https://www.linkedin.com/in/kofi-agyekum-870569298/" },
+    { name: "GitHub", icon: "github", url: "https://github.com/Qofy" },
+    { name: "Email", icon: "mail", url: "mailto:safokofi888@gmail.com" }
   ],
 
   navigation: [
