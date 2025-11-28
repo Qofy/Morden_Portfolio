@@ -6,8 +6,8 @@
   import Footer from './pages/Footer.svelte';
 </script>
 
+<Header />
 <main>
-  <Header />
   <Hero />
   <WorkExperience />
   <ChatBot />

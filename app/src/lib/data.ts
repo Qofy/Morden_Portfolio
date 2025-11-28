@@ -4,8 +4,8 @@ export const portfolioData = {
     title: "Full Stack Developer",
     location: "Ghana 🇬🇭",
     bio: "I like to build web applications, solve complex problems and continuously learn new technologies.",
-    photo: "/profile.jpg", // Add your photo to public folder
-    resumeUrl: "/resume.pdf" // Add your resume to public folder
+    photo: "/profile.jpg", 
+    resumeUrl: "/resume.pdf" 
   },
 
   socialLinks: [
