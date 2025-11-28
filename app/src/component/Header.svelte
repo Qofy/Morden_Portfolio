@@ -40,7 +40,8 @@
     top: 0;
     left: 0;
     right: 0;
-    background: var(--bg-secondary);
+    /* background: var(--bg-secondary); */
+    background-color: transparent;
     border-bottom: 1px solid var(--border-color);
     z-index: 100;
     backdrop-filter: blur(8px);

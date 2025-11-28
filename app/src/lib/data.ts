@@ -2,7 +2,7 @@ export const portfolioData = {
   personal: {
     name: "Kofi Safo Agyekum",
     title: "Full Stack Developer",
-    location: "Ghana 🇬🇭",
+    location: "German 🇩🇪",
     bio: "I like to build web applications, solve complex problems and continuously learn new technologies.",
     photo: "/assets/profile/profile.png", 
     resumeUrl: "/resume.pdf" 
@@ -16,10 +16,10 @@ export const portfolioData = {
   ],
 
   navigation: [
-    { label: "home", href: "#home" },
-    { label: "projects", href: "#projects" },
-    { label: "blog", href: "#blog" },
-    { label: "contact", href: "#contact" }
+    { label: "home", href: "home" },
+    { label: "projects", href: "projects" },
+    { label: "blog", href: "blog" },
+    { label: "contact", href: "contact" }
   ],
 
   workExperience: [

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Calendar, Clock } from 'lucide-svelte';
+  import { Calendar } from 'lucide-svelte';
 </script>
 
 <section class="blog-section" id="blog">

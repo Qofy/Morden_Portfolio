@@ -5,6 +5,26 @@
 
   let messageInput = '';
   let chatContainer: HTMLDivElement;
+  let shouldAutoScroll = true;
+
+  function scrollToBottom() {
+    if (chatContainer && shouldAutoScroll) {
+      requestAnimationFrame(() => {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      });
+    }
+  }
+
+  function handleScroll() {
+    if (!chatContainer) return;
+
+    // Check if user is near the bottom (within 100px)
+    const threshold = 100;
+    const isNearBottom =
+      chatContainer.scrollHeight - chatContainer.scrollTop - chatContainer.clientHeight < threshold;
+
+    shouldAutoScroll = isNearBottom;
+  }
 
   async function sendMessage() {
     if (!messageInput.trim()) return;
@@ -20,6 +40,10 @@
     messageInput = '';
     chatStore.setLoading(true);
 
+    // Always scroll to bottom when sending a message
+    shouldAutoScroll = true;
+    setTimeout(scrollToBottom, 50);
+
     try {
       const response = await sendMessageToOllama(userMessage.content);
 
@@ -31,15 +55,17 @@
       };
 
       chatStore.addMessage(assistantMessage);
+      setTimeout(scrollToBottom, 50);
     } catch (error) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Make sure Ollama is running with: ollama run llama2`,
+        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Make sure Ollama is running with: ollama run qwen2.5:0.5b`,
         timestamp: Date.now()
       };
 
       chatStore.addMessage(errorMessage);
+      setTimeout(scrollToBottom, 50);
     } finally {
       chatStore.setLoading(false);
     }
@@ -51,16 +77,16 @@
       sendMessage();
     }
   }
-
-  $: if (chatContainer && $chatStore.messages.length > 0) {
-    setTimeout(() => {
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }, 100);
-  }
 </script>
 
 {#if $chatStore.isOpen}
-  <div class="chat-overlay" on:click={() => chatStore.closeChat()}></div>
+  <div
+    class="chat-overlay"
+    role="button"
+    tabindex="-1"
+    on:click={() => chatStore.closeChat()}
+    on:keydown={(e) => e.key === 'Escape' && chatStore.closeChat()}
+  ></div>
   <div class="chat-container">
     <div class="chat-header">
       <div class="header-content">
@@ -72,7 +98,7 @@
       </button>
     </div>
 
-    <div class="chat-messages" bind:this={chatContainer}>
+    <div class="chat-messages" bind:this={chatContainer} on:scroll={handleScroll}>
       {#if $chatStore.messages.length === 0}
         <div class="welcome-message">
           <p>👋 Hi! I'm an AI assistant that knows all about Kofi's experience and skills.</p>
@@ -154,7 +180,7 @@
 
   .chat-header {
     padding: 1rem 1.5rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--bg-secondary);
     color: white;
     border-radius: 12px 12px 0 0;
     display: flex;
@@ -302,9 +328,10 @@
   }
 
   .chat-input button {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    
+    background: var(--text-secondary);
     border: none;
-    color: white;
+    color: rgb(21, 21, 21);
     padding: 0.75rem;
     border-radius: 8px;
     cursor: pointer;

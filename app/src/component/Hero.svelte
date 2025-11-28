@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { FileText, Linkedin, Github, Mail, ArrowDown } from 'lucide-svelte';
+  import { FileText, Linkedin, Github, Mail, ArrowDown, Bot } from 'lucide-svelte';
   import { portfolioData } from '../lib/data';
   import { chatStore } from '../lib/stores';
 
@@ -15,7 +15,7 @@
         <p class="bio">{personal.bio}</p>
 
         <p class="chat-prompt">
-          Ask MY chatbot version anything about me
+          Ask MY chatbot <Bot/> version anything about me
           <button class="chat-link" on:click={() => chatStore.toggleChat()}>
             <ArrowDown size={16} />
           </button>

@@ -2,7 +2,7 @@
   import { Mail, Github, Linkedin, MapPin } from 'lucide-svelte';
   import { portfolioData } from '../lib/data';
 
-  const { personal, socialLinks } = portfolioData;
+  const { personal } = portfolioData;
 
   const contactInfo = [
     { icon: Mail, label: 'Email', value: 'safokofi888@gmail.com', href: 'mailto:safokofi888@gmail.com' },
