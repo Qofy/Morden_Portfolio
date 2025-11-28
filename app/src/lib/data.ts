@@ -70,10 +70,10 @@ export const portfolioData = {
   education: [
     {
       id: 1,
-      period: "2016 - 2020",
-      degree: "Bachelor of Science in Computer Science",
-      institution: "University of Ghana",
-      location: "Accra, Ghana",
+      period: "2023 - 2026",
+      degree: "Bachelor of Science in Software Engineering",
+      institution: "University of Europe Of Applied Science",
+      location: "Potsdam, Germany",
       description: [
         "Graduated with First Class Honors",
         "Focused on software engineering and web development",

@@ -2,14 +2,20 @@
   import Header from './component/Header.svelte';
   import Hero from './component/Hero.svelte';
   import WorkExperience from './component/WorkExperience.svelte';
+  import Projects from './component/Projects.svelte';
+  import Blog from './component/Blog.svelte';
+  import Contact from './component/Contact.svelte';
   import ChatBot from './component/ChatBot.svelte';
   import Footer from './pages/Footer.svelte';
 </script>
 
-<Header />
 <main>
+  <Header />
   <Hero />
   <WorkExperience />
+  <Projects />
+  <Blog />
+  <Contact />
   <ChatBot />
   <Footer />
 </main>
