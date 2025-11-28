@@ -42,7 +42,7 @@ export const portfolioData = {
       period: "Aug 2021 - Jul 2023",
       position: "Frontend Developer",
       company: "Tech Company",
-      location: "Accra, Ghana",
+      location: "Berlin, Germany",
       description: [
         "Developed and maintained frontend applications using React and TypeScript",
         "Worked closely with design team to implement pixel-perfect UI components",
