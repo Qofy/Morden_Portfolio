@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start -p 3000"
+    "start": "next start -p 3000",
+    "migrate": "node scripts/migrate-kofi-data.js"
   },
   "dependencies": {
     "next": "^14.2.0",

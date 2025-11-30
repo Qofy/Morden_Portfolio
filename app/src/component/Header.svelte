@@ -28,9 +28,9 @@
       {/if}
     </button>
 
-    <button class="briefcase-icon" aria-label="Portfolio">
+    <a href="http://localhost:3000/dashboard" class="dashboard-link" aria-label="Dashboard">
       <Briefcase size={20} />
-    </button>
+    </a>
   </nav>
 </header>
 
@@ -95,7 +95,7 @@
   }
 
   .theme-toggle,
-  .briefcase-icon {
+  .dashboard-link {
     background: none;
     border: none;
     color: var(--text-secondary);
@@ -106,10 +106,11 @@
     align-items: center;
     justify-content: center;
     transition: all 0.2s;
+    text-decoration: none;
   }
 
   .theme-toggle:hover,
-  .briefcase-icon:hover {
+  .dashboard-link:hover {
     background: var(--bg-hover);
     color: var(--text-primary);
   }
