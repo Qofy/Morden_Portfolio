@@ -1,18 +1,14 @@
 target
 Cargo.lock
 node_modules
+node_modules/
 .dir_bash_history
 bun.lock
 .yarn
 package-lock.json
 test-results
 app/dist/
-<<<<<<< HEAD
 dist
-backend
-referenc_slice
-=======
-node_modules/
 dist/
 build/
 __tests__/
@@ -21,5 +17,23 @@ npm-debug.log*
 *.cache/
 *.tmp
 .temp_keys
->>>>>>> cf0d751084776de9befee9903d2f0a7854904626
+referenc_slice
 start-ollama.sh
+
+# Database
+database/*.db
+database/*.db-shm
+database/*.db-wal
+
+# Environment variables
+.env
+.env.local
+.env*.local
+backend/.env
+backend/.env.local
+
+# Next.js
+.next/
+out/
+backend/.next/
+backend/out/

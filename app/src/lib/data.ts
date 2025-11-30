@@ -16,10 +16,10 @@ export const portfolioData = {
   ],
 
   navigation: [
-    { label: "home", href: "home" },
-    { label: "projects", href: "projects" },
-    { label: "blog", href: "blog" },
-    { label: "contact", href: "contact" }
+    { label: "home", href: "#home" },
+    { label: "projects", href: "#projects" },
+    { label: "blog", href: "#blog" },
+    { label: "contact", href: "#contact" }
   ],
 
   workExperience: [

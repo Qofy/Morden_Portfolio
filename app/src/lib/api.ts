@@ -55,3 +55,24 @@ export async function testOllamaConnection(): Promise<boolean> {
     return false;
   }
 }
+
+const BACKEND_API_URL = 'http://localhost:3000/api';
+
+export async function fetchPortfolioByUsername(username: string): Promise<any | null> {
+  try {
+    const response = await fetch(`${BACKEND_API_URL}/portfolio/${username}`);
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null;
+      }
+      throw new Error(`Failed to fetch portfolio: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching portfolio from backend:', error);
+    return null;
+  }
+}

@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+  import { fetchPortfolioByUsername } from './lib/api';
+  import { portfolioData } from './lib/data';
   import Header from './component/Header.svelte';
   import Hero from './component/Hero.svelte';
   import WorkExperience from './component/WorkExperience.svelte';
@@ -7,6 +10,23 @@
   import Contact from './component/Contact.svelte';
   import ChatBot from './component/ChatBot.svelte';
   import Footer from './pages/Footer.svelte';
+
+  let currentPortfolio = portfolioData;
+  let loading = true;
+
+  onMount(async () => {
+    const pathParts = window.location.pathname.split('/').filter(p => p);
+    const username = pathParts[0];
+
+    if (username) {
+      const data = await fetchPortfolioByUsername(username);
+      if (data) {
+        currentPortfolio = data;
+      }
+    }
+
+    loading = false;
+  });
 </script>
 
 <main>
