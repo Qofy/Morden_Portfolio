@@ -56,6 +56,7 @@
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
+          userId: user.id,
           personal,
           workExperience,
           education,
