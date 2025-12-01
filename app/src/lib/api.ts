@@ -76,7 +76,7 @@ export async function testOllamaConnection(): Promise<boolean> {
   }
 }
 
-const BACKEND_API_URL = 'http://localhost:3000/api';
+const BACKEND_API_URL = 'http://localhost:3500/api';
 
 export async function fetchPortfolioByUsername(username: string): Promise<any | null> {
   try {
