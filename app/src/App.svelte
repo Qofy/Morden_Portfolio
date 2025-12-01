@@ -111,17 +111,21 @@
     --text-primary: #e7e9ea;
     --text-secondary: #8b98a5;
     --border-color: #2f3336;
-    --accent-color: #1d9bf0;
+    --text-primary-2: #0f1419;
+    --border-color: #eff3f4;
+
+
+    /* --accent-color: #1d9bf0; */
   }
 
   :global(:root.light) {
     --bg-primary: #ffffff;
     --bg-secondary: #f7f9f9;
     --bg-hover: #eff3f4;
-    --text-primary: #0f1419;
+    --text-primary-2: #0f1419;
     --text-secondary: #536471;
     --border-color: #eff3f4;
-    --accent-color: #1d9bf0;
+    /* --accent-color: #1d9bf0; */
   }
 
   main {

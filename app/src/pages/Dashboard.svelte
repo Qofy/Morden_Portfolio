@@ -86,28 +86,32 @@
 <style>
   .dashboard {
     min-height: 100vh;
-    background: #f5f7fa;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+
   }
 
   .dashboard-header {
-    background: white;
-    border-bottom: 1px solid #e1e4e8;
+       background-color: transparent;
+    border-bottom: 1px solid #383838;
     padding: 24px 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    /* position: fixed;
+    top: 0; */
   }
 
   .header-content h1 {
     margin: 0;
     font-size: 24px;
-    color: #333;
+    color: #fff;
   }
 
   .welcome {
     margin: 4px 0 0 0;
-    color: #666;
+    color: #8c8b8b;
     font-size: 14px;
   }
 
@@ -118,10 +122,10 @@
 
   .btn-secondary {
     padding: 10px 20px;
-    background: white;
-    border: 1px solid #ddd;
+    background: var(--text-secondary);
+    border: 1px solid #626060;
     border-radius: 6px;
-    color: #333;
+    color: #fff;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -129,13 +133,13 @@
   }
 
   .btn-secondary:hover {
-    border-color: #667eea;
-    color: #667eea;
+    border-color: #f9f9fa;
+    color: #ffffff;
   }
 
   .btn-logout {
     padding: 10px 20px;
-    background: #ff4757;
+    background: var(--bg-primary);
     border: none;
     border-radius: 6px;
     color: white;
@@ -160,7 +164,7 @@
   .tabs {
     display: flex;
     gap: 8px;
-    background: white;
+    background: var(--bg-scondary);
     padding: 8px;
     border-radius: 8px;
     margin-bottom: 24px;
@@ -181,20 +185,21 @@
   }
 
   .tab:hover {
-    background: #f5f7fa;
+     background: var(--text-primary);
     color: #333;
   }
 
   .tab.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+         background: var(--text-secondary);
+    color: var(--text-primary);
   }
 
   .tab-content {
-    background: white;
+    background: var(--bg-primary);
+    color: var(--text-primary);
     border-radius: 8px;
     padding: 32px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 2px 4px var(--border-color);
     min-height: 500px;
   }
 
