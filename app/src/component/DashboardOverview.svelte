@@ -1,4 +1,6 @@
 <script lang="ts">
+import{BriefcaseBusiness, GraduationCap,Code,MonitorCog,Eye, Pencil,Bot} from "lucide-svelte"
+
   import { onMount } from 'svelte';
 
   export let user: any;
@@ -95,25 +97,25 @@
 
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-icon">💼</div>
+        <div class="stat-icon"><BriefcaseBusiness/></div>
         <div class="stat-value">{stats.workExperience}</div>
         <div class="stat-label">Work Experiences</div>
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon">🎓</div>
+        <div class="stat-icon"><GraduationCap/></div>
         <div class="stat-value">{stats.education}</div>
         <div class="stat-label">Education Entries</div>
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon">🚀</div>
+        <div class="stat-icon"><Code/></div>
         <div class="stat-value">{stats.projects}</div>
         <div class="stat-label">Projects</div>
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon">⚡</div>
+        <div class="stat-icon"><MonitorCog/></div>
         <div class="stat-value">{stats.skills}</div>
         <div class="stat-label">Skills</div>
       </div>
@@ -145,15 +147,15 @@
       <h3>Quick Actions</h3>
       <div class="actions-grid">
         <a href="#{user.username}" class="action-card">
-          <span class="action-icon">👁️</span>
+          <span class="action-icon"><Eye/></span>
           <span>View Public Portfolio</span>
         </a>
         <button class="action-card" on:click={() => window.dispatchEvent(new CustomEvent('changeTab', { detail: 'edit' }))}>
-          <span class="action-icon">✏️</span>
+          <span class="action-icon"><Pencil/></span>
           <span>Edit Portfolio</span>
         </button>
         <button class="action-card" on:click={() => window.dispatchEvent(new CustomEvent('changeTab', { detail: 'interview' }))}>
-          <span class="action-icon">🤖</span>
+          <span class="action-icon"><Bot/></span>
           <span>Start AI Interview</span>
         </button>
       </div>
@@ -178,19 +180,19 @@
   h2 {
     margin: 0;
     font-size: 24px;
-    color: #333;
+    color: #fff;
   }
 
   h3 {
     margin: 0 0 16px 0;
     font-size: 18px;
-    color: #333;
+    color: var(--text-primary);
   }
 
   .btn-download {
     padding: 12px 24px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--text-secondary);
+    color: var(--text-primary);
     border: none;
     border-radius: 6px;
     font-size: 14px;
@@ -220,7 +222,7 @@
   }
 
   .completion-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--bg-secondary);
     color: white;
     padding: 24px;
     border-radius: 8px;
@@ -256,11 +258,15 @@
   }
 
   .stat-card {
-    background: #f8f9fa;
+    background: var(--bg-secondary);
     padding: 24px;
     border-radius: 8px;
     text-align: center;
     transition: transform 0.2s;
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
   .stat-card:hover {
@@ -269,19 +275,19 @@
 
   .stat-icon {
     font-size: 32px;
-    margin-bottom: 8px;
+    /* margin-bottom: 8px; */
   }
 
   .stat-value {
     font-size: 28px;
     font-weight: 700;
-    color: #667eea;
+    color: var(--border-color);
     margin-bottom: 4px;
   }
 
   .stat-label {
     font-size: 12px;
-    color: #666;
+    color: var(--text-primary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -298,18 +304,18 @@
   .info-item {
     display: flex;
     padding: 16px;
-    background: #f8f9fa;
+    background: var(--bg-secondary);
     border-radius: 6px;
   }
 
   .info-item label {
     font-weight: 600;
-    color: #666;
+    color: var(--text-secondary);
     min-width: 120px;
   }
 
   .info-item span {
-    color: #333;
+    color: #fff;
   }
 
   .quick-actions {
@@ -328,11 +334,11 @@
     align-items: center;
     gap: 12px;
     padding: 24px;
-    background: #f8f9fa;
+    background: var(--bg-secondary);
     border: 2px solid transparent;
     border-radius: 8px;
     text-decoration: none;
-    color: #333;
+    color: var(--text-secondary);
     cursor: pointer;
     transition: all 0.3s;
   }
@@ -346,6 +352,7 @@
 
   .action-icon {
     font-size: 32px;
+    color: #fff;
   }
 
   @media (max-width: 768px) {

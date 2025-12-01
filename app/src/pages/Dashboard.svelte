@@ -150,9 +150,9 @@
   }
 
   .btn-logout:hover {
-    background: #ee3d4d;
+    background: var(--bg-secondary);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
+    box-shadow: 0 2px 8px rgba(67, 66, 66, 0.3);
   }
 
   .dashboard-content {
@@ -164,7 +164,7 @@
   .tabs {
     display: flex;
     gap: 8px;
-    background: var(--bg-scondary);
+    background: var(--bg-primary);
     padding: 8px;
     border-radius: 8px;
     margin-bottom: 24px;
@@ -190,7 +190,7 @@
   }
 
   .tab.active {
-         background: var(--text-secondary);
+         background: var(--bg-secondary);
     color: var(--text-primary);
   }
 
