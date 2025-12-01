@@ -13,7 +13,12 @@
   let workExperience: any[] = [];
   let education: any[] = [];
   let projects: any[] = [];
-  let skills = { frontend: [], backend: [], tools: [], other: [] };
+  let skills: { frontend: string[]; backend: string[]; tools: string[]; other: string[] } = {
+    frontend: [],
+    backend: [],
+    tools: [],
+    other: []
+  };
   let socialLinks: any[] = [];
 
   onMount(async () => {

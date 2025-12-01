@@ -43,7 +43,7 @@
     }
   }
 
-  onMount(async () => {
+  onMount(() => {
     // Set up route listener
     window.addEventListener('hashchange', updateRoute);
     updateRoute();
@@ -52,10 +52,11 @@
     const hash = window.location.hash.slice(1);
     if (hash && !['login', 'register', 'dashboard'].includes(hash)) {
       // Treat hash as username
-      const data = await fetchPortfolioByUsername(hash);
-      if (data) {
-        currentPortfolio = data;
-      }
+      fetchPortfolioByUsername(hash).then((data) => {
+        if (data) {
+          currentPortfolio = data;
+        }
+      });
     }
 
     loading = false;
