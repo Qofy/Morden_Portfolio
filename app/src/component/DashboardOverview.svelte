@@ -344,8 +344,8 @@ import{BriefcaseBusiness, GraduationCap,Code,MonitorCog,Eye, Pencil,Bot} from "l
   }
 
   .action-card:hover {
-    border-color: #667eea;
-    background: white;
+    border-color: var(--bg-secondary);
+    background: var(--bg-secondary);
     transform: translateY(-4px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }

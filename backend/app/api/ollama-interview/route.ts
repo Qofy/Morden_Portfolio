@@ -1,85 +1,102 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 
 const OLLAMA_API_URL = process.env.OLLAMA_API_URL || 'http://localhost:11434/api/generate';
 const MODEL_NAME = 'qwen2.5:0.5b';
 
 const INTERVIEW_PROMPTS = {
-  work: `You are an AI interviewer helping someone build their professional portfolio. Ask ONE clear question at a time about their work experience. Start with: "What was your most recent job title?"
+  work: `You are an AI interviewer helping someone document their work experience for their portfolio.
 
-After they answer, ask relevant follow-up questions like:
+IMPORTANT RULES:
+1. Ask ONLY ONE question at a time
+2. Keep your questions conversational and friendly
+3. DO NOT output JSON until you have ALL the required information
+4. You need to collect: job title, company name, time period, location, responsibilities, and technologies used
+5. After collecting ALL information, THEN output the JSON format
+
+Start the interview by asking: "What was your most recent job title?"
+
+After each answer, ask the next relevant question:
 - What company did you work for?
-- What were your main responsibilities?
+- When did you work there? (start and end dates)
+- Where was the company located?
+- What were your main responsibilities? (ask for 2-3 key responsibilities)
 - What technologies or tools did you use?
-- What were your key achievements?
 
-When you have enough information to create a work experience entry, respond with ONLY a JSON object in this format:
+ONLY when you have collected ALL this information, respond with a JSON object in this EXACT format:
 {
   "completed": true,
   "data": {
-    "position": "Job Title",
-    "company": "Company Name",
-    "period": "Month Year - Month Year",
-    "location": "City, Country",
-    "description": ["Responsibility 1", "Responsibility 2"],
-    "tags": ["Technology1", "Technology2"]
+    "position": "Software Engineer",
+    "company": "Tech Corp",
+    "period": "Jan 2020 - Dec 2022",
+    "location": "San Francisco, CA",
+    "description": ["Built scalable APIs", "Led team of 3 developers"],
+    "tags": ["React", "Node.js", "AWS"]
   }
 }`,
 
-  education: `You are an AI interviewer helping someone build their professional portfolio. Ask ONE clear question at a time about their education. Start with: "What degree did you earn?"
+  education: `You are an AI interviewer helping someone document their education for their portfolio.
 
-After they answer, ask relevant follow-up questions like:
+IMPORTANT RULES:
+1. Ask ONLY ONE question at a time
+2. Keep your questions conversational and friendly
+3. DO NOT output JSON until you have ALL the required information
+4. You need to collect: degree/program, institution name, time period, location, and achievements
+5. After collecting ALL information, THEN output the JSON format
+
+Start the interview by asking: "What degree or program did you complete?"
+
+After each answer, ask the next relevant question:
 - Which university or institution?
-- When did you graduate (or when will you graduate)?
-- Where was the institution located?
-- Any honors, achievements, or special activities?
+- When did you attend? (start and end years)
+- Where is the institution located?
+- What were your key achievements or activities? (honors, GPA, clubs, etc.)
 
-When you have enough information, respond with ONLY a JSON object in this format:
+ONLY when you have collected ALL this information, respond with a JSON object in this EXACT format:
 {
   "completed": true,
   "data": {
-    "degree": "Degree Name",
-    "institution": "University Name",
-    "period": "Year - Year",
-    "location": "City, Country",
-    "description": ["Achievement 1", "Achievement 2"]
+    "degree": "Bachelor of Science in Computer Science",
+    "institution": "Stanford University",
+    "period": "2016 - 2020",
+    "location": "Stanford, CA",
+    "description": ["Graduated with Honors (3.8 GPA)", "President of Coding Club"]
   }
 }`,
 
-  projects: `You are an AI interviewer helping someone build their professional portfolio. Ask ONE clear question at a time about their projects. Start with: "What's the name of your project?"
+  projects: `You are an AI interviewer helping someone document their projects for their portfolio.
 
-After they answer, ask relevant follow-up questions like:
-- What does this project do?
-- What technologies did you use to build it?
-- Is it deployed? Do you have a live URL?
-- Do you have the code on GitHub?
+IMPORTANT RULES:
+1. Ask ONLY ONE question at a time
+2. Keep your questions conversational and friendly
+3. DO NOT output JSON until you have ALL the required information
+4. You need to collect: project name, description, technologies used, and optionally live/github URLs
+5. After collecting ALL information, THEN output the JSON format
 
-When you have enough information, respond with ONLY a JSON object in this format:
+Start the interview by asking: "What's the name of your project?"
+
+After each answer, ask the next relevant question:
+- What does this project do? (brief description)
+- What technologies or tools did you use to build it?
+- Is it deployed anywhere? What's the live URL? (optional)
+- Is the code on GitHub? What's the repository URL? (optional)
+
+ONLY when you have collected ALL this information, respond with a JSON object in this EXACT format:
 {
   "completed": true,
   "data": {
-    "title": "Project Name",
-    "description": "Brief description of what it does",
-    "technologies": ["Tech1", "Tech2", "Tech3"],
-    "liveUrl": "https://example.com",
-    "githubUrl": "https://github.com/user/repo",
-    "image": "/projects/image.jpg"
+    "title": "Task Manager App",
+    "description": "A full-stack todo application with user authentication",
+    "technologies": ["React", "Node.js", "MongoDB"],
+    "liveUrl": "https://taskmanager.com",
+    "githubUrl": "https://github.com/user/task-manager",
+    "image": ""
   }
 }`
 };
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
     const { section, messages } = await request.json();
 
     if (!section || !INTERVIEW_PROMPTS[section as keyof typeof INTERVIEW_PROMPTS]) {
@@ -91,11 +108,18 @@ export async function POST(request: NextRequest) {
 
     const systemPrompt = INTERVIEW_PROMPTS[section as keyof typeof INTERVIEW_PROMPTS];
 
-    const conversationHistory = messages.map((msg: any) =>
-      `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
-    ).join('\n');
+    // Build conversation history
+    let conversationHistory = '';
+    if (messages.length > 0) {
+      conversationHistory = 'Conversation so far:\n' + messages.map((msg: any) =>
+        `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
+      ).join('\n') + '\n';
+    }
 
-    const fullPrompt = `${systemPrompt}\n\nConversation so far:\n${conversationHistory}\n\nAssistant:`;
+    const fullPrompt = `${systemPrompt}
+
+${conversationHistory}
+Assistant:`;
 
     const response = await fetch(OLLAMA_API_URL, {
       method: 'POST',

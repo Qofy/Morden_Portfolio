@@ -48,30 +48,34 @@ import{BriefcaseBusiness, GraduationCap,Code,MonitorCog,Eye, Pencil,Bot} from "l
 
       if (response.ok) {
         const data = await response.json();
+        console.log('Ollama Interview Response:', data);
 
         // Add AI response
         messages = [...messages, {
           role: 'assistant',
-          content: data.response
+          content: data.message || data.response || 'No response received'
         }];
 
         // Check if interview is complete
-        if (data.complete && data.result) {
+        if (data.completed && data.data) {
           messages = [...messages, {
             role: 'assistant',
-            content: `Great! I've gathered all the information. Here's what I have:\n\n${JSON.stringify(data.result, null, 2)}\n\nYou can now save this to your portfolio or start over if you'd like to make changes.`
+            content: `Great! I've gathered all the information. Here's what I have:\n\n${JSON.stringify(data.data, null, 2)}\n\nYou can now save this to your portfolio or start over if you'd like to make changes.`
           }];
         }
       } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Ollama Interview Error:', response.status, errorData);
         messages = [...messages, {
           role: 'assistant',
-          content: 'Sorry, I encountered an error. Please try again.'
+          content: `Sorry, I encountered an error: ${errorData.error || 'Please try again.'}`
         }];
       }
     } catch (error) {
+      console.error('Ollama Interview Exception:', error);
       messages = [...messages, {
         role: 'assistant',
-        content: 'Failed to connect to the AI service. Please make sure Ollama is running.'
+        content: 'Failed to connect to the AI service. Please make sure Ollama is running and the backend is accessible.'
       }];
     } finally {
       loading = false;
