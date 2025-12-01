@@ -113,7 +113,7 @@
     --border-color: #2f3336;
     --text-primary-2: #0f1419;
     --border-color-2: #eff3f4;
-    --c-bg-secondary: #a5b2be;
+    --c-border-secondary: #a5b2be;
 
 
 

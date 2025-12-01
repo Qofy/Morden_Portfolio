@@ -1,4 +1,6 @@
 <script lang="ts">
+import{BriefcaseBusiness, GraduationCap,Code,MonitorCog,Eye, Pencil,Bot} from "lucide-svelte"
+
   export let user: any;
 
   let section: 'work' | 'education' | 'projects' = 'work';
@@ -103,7 +105,7 @@
         <label class="section-option">
           <input type="radio" bind:group={section} value="work" />
           <div class="option-card">
-            <span class="option-icon">💼</span>
+            <span class="option-icon"><BriefcaseBusiness/></span>
             <span class="option-title">Work Experience</span>
             <span class="option-desc">Document your professional roles and achievements</span>
           </div>
@@ -112,7 +114,7 @@
         <label class="section-option">
           <input type="radio" bind:group={section} value="education" />
           <div class="option-card">
-            <span class="option-icon">🎓</span>
+            <span class="option-icon"><GraduationCap/></span>
             <span class="option-title">Education</span>
             <span class="option-desc">Add your academic background and qualifications</span>
           </div>
@@ -121,7 +123,7 @@
         <label class="section-option">
           <input type="radio" bind:group={section} value="projects" />
           <div class="option-card">
-            <span class="option-icon">🚀</span>
+            <span class="option-icon"><MonitorCog/></span>
             <span class="option-title">Projects</span>
             <span class="option-desc">Showcase your personal and professional projects</span>
           </div>
@@ -154,7 +156,7 @@
 
         {#if loading}
           <div class="message assistant">
-            <div class="message-avatar">🤖</div>
+            <div class="message-avatar"><Bot/></div>
             <div class="message-content typing">
               <span></span><span></span><span></span>
             </div>
@@ -197,19 +199,20 @@
   h2 {
     margin: 0 0 8px 0;
     font-size: 24px;
-    color: #333;
+    color: var(--text-primary);
   }
 
   h3 {
     margin: 0 0 24px 0;
     font-size: 20px;
-    color: #333;
+    color: var(--text-primary);
+    
     text-align: center;
   }
 
   .subtitle {
     margin: 0;
-    color: #666;
+    color: var(--text-secondary);
     font-size: 14px;
   }
 
@@ -239,7 +242,7 @@
     align-items: center;
     gap: 12px;
     padding: 24px;
-    background: #f8f9fa;
+    background: var(--bg-secondary);
     border: 2px solid transparent;
     border-radius: 8px;
     transition: all 0.3s;
@@ -247,13 +250,14 @@
   }
 
   .section-option input:checked + .option-card {
-    background: white;
-    border-color: #667eea;
+    background: var(--bg-primary);
+    border-color: var(--c-border-secondary);
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    color: var(--text-secondary);
   }
 
   .option-card:hover {
-    border-color: #667eea;
+    border-color: var(--c-border-secondary);
     transform: translateY(-4px);
   }
 
@@ -263,7 +267,7 @@
 
   .option-title {
     font-weight: 600;
-    color: #333;
+    color: var(--text-primary);
     font-size: 16px;
   }
 
@@ -274,8 +278,8 @@
 
   .btn-start {
     padding: 16px 32px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
     border: none;
     border-radius: 8px;
     font-size: 16px;
@@ -291,21 +295,21 @@
   }
 
   .info-box {
-    background: #f0f4ff;
-    border-left: 4px solid #667eea;
+    background: var(--bg-secondary);
+    border-left: 4px solid var(--c-border-secondary);
     padding: 16px 20px;
     border-radius: 4px;
   }
 
   .info-box strong {
-    color: #667eea;
+    color: var(--text-secondary);
     display: block;
     margin-bottom: 8px;
   }
 
   .info-box p {
     margin: 0;
-    color: #666;
+    color: var(--text-secondary);
     font-size: 14px;
     line-height: 1.6;
   }
@@ -314,7 +318,7 @@
     display: flex;
     flex-direction: column;
     height: 600px;
-    background: #f8f9fa;
+    background: var(--bg-primary);
     border-radius: 8px;
     overflow: hidden;
   }
@@ -332,6 +336,7 @@
     display: flex;
     gap: 12px;
     animation: slideIn 0.3s ease;
+    /* background: var(--text-primary); */
   }
 
   @keyframes slideIn {
@@ -351,7 +356,7 @@
   }
 
   .message-content {
-    background: white;
+    background: var(--bg-secondary);
     padding: 12px 16px;
     border-radius: 12px;
     max-width: 80%;
@@ -364,8 +369,8 @@
   }
 
   .message.user .message-content {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
+    background: var(--bg-primary);
+    color: var(--text-secondary);
   }
 
   .typing {
@@ -377,7 +382,7 @@
   .typing span {
     width: 8px;
     height: 8px;
-    background: #667eea;
+    background: #fff;
     border-radius: 50%;
     animation: typing 1.4s infinite;
   }
@@ -400,7 +405,7 @@
   }
 
   .chat-input-area {
-    background: white;
+    background: var(--bg-primary);
     padding: 16px;
     border-top: 1px solid #e1e4e8;
   }
@@ -430,30 +435,31 @@
 
   .btn-reset {
     padding: 10px 20px;
-    background: white;
+    background: var(--bg-primary);
     border: 1px solid #ddd;
     border-radius: 6px;
-    color: #666;
+    color: var(--text-secondary);
     font-size: 14px;
     cursor: pointer;
     transition: all 0.3s;
   }
 
   .btn-reset:hover {
-    border-color: #667eea;
-    color: #667eea;
+    border-color:var(--c-border-secondary);
+    color: var(--text-secondary);
   }
 
   .btn-send {
     padding: 10px 32px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--bg-secondary);
     color: white;
-    border: none;
+    border: 1px solid var(--c-border-secondary);
     border-radius: 6px;
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
+
   }
 
   .btn-send:hover:not(:disabled) {

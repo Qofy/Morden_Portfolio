@@ -337,18 +337,18 @@
   h2 {
     margin: 0;
     font-size: 24px;
-    color: #333;
+    color: var(--text-primary);
   }
 
   h3 {
     margin: 0 0 16px 0;
     font-size: 18px;
-    color: #333;
+       color: var(--text-primary);
   }
 
   .btn-save {
     padding: 12px 24px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--bg-secondary);
     color: white;
     border: none;
     border-radius: 6px;
@@ -392,10 +392,10 @@
 
   .btn-add {
     padding: 8px 16px;
-    background: white;
-    border: 1px solid #667eea;
+    background: var(--text-secondary);
+    /* border: 1px solid #667eea; */
     border-radius: 6px;
-    color: #667eea;
+    color: var(--text-primary);
     font-size: 14px;
     font-weight: 500;
     cursor: pointer;
@@ -424,7 +424,7 @@
 
   label {
     margin-bottom: 8px;
-    color: #333;
+    color: var(--text-secondary);
     font-weight: 500;
     font-size: 14px;
   }
