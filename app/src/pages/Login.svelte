@@ -86,12 +86,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--bg-primary);
     padding: 20px;
   }
 
   .login-box {
-    background: white;
+    background: var(--bg-secondary);
     border-radius: 12px;
     padding: 40px;
     max-width: 420px;
@@ -101,14 +101,14 @@
 
   h1 {
     margin: 0 0 8px 0;
-    color: #333;
+    color: var(--text-primary);
     font-size: 28px;
     text-align: center;
   }
 
   .subtitle {
     margin: 0 0 32px 0;
-    color: #666;
+    color: var(--text-secondary);
     text-align: center;
     font-size: 14px;
   }
@@ -130,7 +130,7 @@
   label {
     display: block;
     margin-bottom: 8px;
-    color: #333;
+        color: var(--text-secondary);
     font-weight: 500;
     font-size: 14px;
   }
@@ -158,7 +158,7 @@
   .btn-primary {
     width: 100%;
     padding: 14px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--bg-primary);
     color: white;
     border: none;
     border-radius: 6px;
@@ -190,7 +190,7 @@
   .link-btn {
     background: none;
     border: none;
-    color: #667eea;
+    color: var(--text-secondary);
     font-size: 14px;
     cursor: pointer;
     padding: 8px;
@@ -199,7 +199,7 @@
   }
 
   .link-btn:hover:not(:disabled) {
-    color: #764ba2;
+    color: var(--text-primary);
     text-decoration: underline;
   }
 
