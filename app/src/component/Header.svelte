@@ -1,14 +1,24 @@
 <script lang="ts">
-  import { Sun, Moon, Briefcase } from 'lucide-svelte';
+  import { Sun, Moon, Briefcase, LogIn, LogOut } from 'lucide-svelte';
   import { portfolioData } from '../lib/data';
+  import { authStore } from '../lib/stores';
 
   const { navigation } = portfolioData;
 
   let isDark = true;
+  let isAuthenticated = false;
+
+  authStore.subscribe((state) => {
+    isAuthenticated = state.isAuthenticated;
+  });
 
   function toggleTheme() {
     isDark = !isDark;
     document.documentElement.classList.toggle('light');
+  }
+
+  function handleLogout() {
+    authStore.logout();
   }
 </script>
 
@@ -20,17 +30,28 @@
       {/each}
     </div>
 
-    <button class="theme-toggle" on:click={toggleTheme} aria-label="Toggle theme">
-      {#if isDark}
-        <Sun size={20} />
-      {:else}
-        <Moon size={20} />
-      {/if}
-    </button>
+    <div class="nav-actions">
+      <button class="theme-toggle" on:click={toggleTheme} aria-label="Toggle theme">
+        {#if isDark}
+          <Sun size={20} />
+        {:else}
+          <Moon size={20} />
+        {/if}
+      </button>
 
-    <a href="http://localhost:3000/dashboard" class="dashboard-link" aria-label="Dashboard">
-      <Briefcase size={20} />
-    </a>
+      {#if isAuthenticated}
+        <a href="#dashboard" class="dashboard-link" aria-label="Dashboard">
+          <Briefcase size={20} />
+        </a>
+        <button class="logout-btn" on:click={handleLogout} aria-label="Logout">
+          <LogOut size={20} />
+        </button>
+      {:else}
+        <a href="#login" class="login-link" aria-label="Login">
+          <LogIn size={20} />
+        </a>
+      {/if}
+    </div>
   </nav>
 </header>
 
@@ -94,8 +115,16 @@
     width: 100%;
   }
 
+  .nav-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
   .theme-toggle,
-  .dashboard-link {
+  .dashboard-link,
+  .login-link,
+  .logout-btn {
     background: none;
     border: none;
     color: var(--text-secondary);
@@ -110,9 +139,15 @@
   }
 
   .theme-toggle:hover,
-  .dashboard-link:hover {
+  .dashboard-link:hover,
+  .login-link:hover,
+  .logout-btn:hover {
     background: var(--bg-hover);
     color: var(--text-primary);
+  }
+
+  .logout-btn:hover {
+    color: #ff4757;
   }
 
   @media (max-width: 768px) {

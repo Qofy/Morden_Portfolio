@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { fetchPortfolioByUsername } from './lib/api';
   import { portfolioData } from './lib/data';
+  import { authStore } from './lib/stores';
   import Header from './component/Header.svelte';
   import Hero from './component/Hero.svelte';
   import WorkExperience from './component/WorkExperience.svelte';
@@ -10,34 +11,79 @@
   import Contact from './component/Contact.svelte';
   import ChatBot from './component/ChatBot.svelte';
   import Footer from './pages/Footer.svelte';
+  import Login from './pages/Login.svelte';
+  import Register from './pages/Register.svelte';
+  import Dashboard from './pages/Dashboard.svelte';
 
   let currentPortfolio = portfolioData;
   let loading = true;
+  let currentRoute = '';
+  let isAuthenticated = false;
+
+  // Subscribe to auth state
+  authStore.subscribe((state) => {
+    isAuthenticated = state.isAuthenticated;
+  });
+
+  // Handle routing
+  function updateRoute() {
+    const hash = window.location.hash.slice(1); // Remove '#'
+    currentRoute = hash || '';
+
+    // Protected route guard
+    if (currentRoute === 'dashboard' && !isAuthenticated) {
+      window.location.hash = '#login';
+      return;
+    }
+
+    // If logged in user tries to access login/register, redirect to dashboard
+    if (isAuthenticated && (currentRoute === 'login' || currentRoute === 'register')) {
+      window.location.hash = '#dashboard';
+      return;
+    }
+  }
 
   onMount(async () => {
-    const pathParts = window.location.pathname.split('/').filter(p => p);
-    const username = pathParts[0];
+    // Set up route listener
+    window.addEventListener('hashchange', updateRoute);
+    updateRoute();
 
-    if (username) {
-      const data = await fetchPortfolioByUsername(username);
+    // Load portfolio data if viewing a username
+    const hash = window.location.hash.slice(1);
+    if (hash && !['login', 'register', 'dashboard'].includes(hash)) {
+      // Treat hash as username
+      const data = await fetchPortfolioByUsername(hash);
       if (data) {
         currentPortfolio = data;
       }
     }
 
     loading = false;
+
+    return () => {
+      window.removeEventListener('hashchange', updateRoute);
+    };
   });
 </script>
 
 <main>
-  <Header />
-  <Hero />
-  <WorkExperience />
-  <Projects />
-  <Blog />
-  <Contact />
-  <ChatBot />
-  <Footer />
+  {#if currentRoute === 'login'}
+    <Login />
+  {:else if currentRoute === 'register'}
+    <Register />
+  {:else if currentRoute === 'dashboard'}
+    <Dashboard />
+  {:else}
+    <!-- Public Portfolio View -->
+    <Header />
+    <Hero />
+    <WorkExperience />
+    <Projects />
+    <Blog />
+    <Contact />
+    <ChatBot />
+    <Footer />
+  {/if}
 </main>
 
 <style>
