@@ -1,5 +1,6 @@
 <script lang="ts">
 import{BriefcaseBusiness, GraduationCap,Code,MonitorCog,Eye, Pencil,Bot} from "lucide-svelte"
+import { sendMessageToOllama } from '../lib/api';
 
   export let user: any;
 
@@ -9,20 +10,40 @@ import{BriefcaseBusiness, GraduationCap,Code,MonitorCog,Eye, Pencil,Bot} from "l
   let loading = false;
   let interviewStarted = false;
 
-  function startInterview() {
+  const interviewPrompts = {
+    work: `You are an AI interviewer helping someone document their work experience for their portfolio. Ask ONE question at a time about their job title, company, dates, location, responsibilities, and technologies. Keep it conversational and friendly. After gathering all info, summarize it.`,
+    education: `You are an AI interviewer helping someone document their education. Ask ONE question at a time about their degree, university, dates, location, and achievements. Keep it conversational and friendly. After gathering all info, summarize it.`,
+    projects: `You are an AI interviewer helping someone document their projects. Ask ONE question at a time about project name, description, technologies, and URLs. Keep it conversational and friendly. After gathering all info, summarize it.`
+  };
+
+  async function startInterview() {
     interviewStarted = true;
     messages = [];
+    loading = true;
 
-    const prompts = {
-      work: "Hello! I'll help you document your work experience. Let's start with your most recent position. What was your job title?",
-      education: "Hi! I'll help you document your education history. Let's begin with your highest degree. What did you study?",
-      projects: "Hello! Let's document your projects. Tell me about a project you're proud of. What was it called?"
-    };
+    try {
+      // Create interview context with system prompt
+      const portfolioContext = {
+        personal: { name: user.username }
+      };
 
-    messages = [{
-      role: 'assistant',
-      content: prompts[section]
-    }];
+      const response = await sendMessageToOllama(
+        "Start the interview. Ask me the first question.",
+        { ...portfolioContext, systemPrompt: interviewPrompts[section] }
+      );
+
+      messages = [{
+        role: 'assistant',
+        content: response
+      }];
+    } catch (error) {
+      messages = [{
+        role: 'assistant',
+        content: `Failed to start interview. Make sure Ollama is running: ${error instanceof Error ? error.message : 'Unknown error'}`
+      }];
+    } finally {
+      loading = false;
+    }
   }
 
   async function sendMessage() {
@@ -30,52 +51,34 @@ import{BriefcaseBusiness, GraduationCap,Code,MonitorCog,Eye, Pencil,Bot} from "l
 
     const userMessage = currentMessage.trim();
     currentMessage = '';
-    loading = true;
 
     // Add user message
     messages = [...messages, { role: 'user', content: userMessage }];
+    loading = true;
 
     try {
-      const response = await fetch('http://localhost:3500/api/ollama-interview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          section,
-          messages: messages.map(m => ({ role: m.role, content: m.content }))
-        })
-      });
+      // Build conversation context
+      const conversationHistory = messages
+        .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+        .join('\n');
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Ollama Interview Response:', data);
+      // Create context with system prompt and conversation
+      const fullContext = {
+        personal: { name: user.username },
+        systemPrompt: `${interviewPrompts[section]}\n\nConversation so far:\n${conversationHistory}`
+      };
 
-        // Add AI response
-        messages = [...messages, {
-          role: 'assistant',
-          content: data.message || data.response || 'No response received'
-        }];
+      const response = await sendMessageToOllama(userMessage, fullContext);
 
-        // Check if interview is complete
-        if (data.completed && data.data) {
-          messages = [...messages, {
-            role: 'assistant',
-            content: `Great! I've gathered all the information. Here's what I have:\n\n${JSON.stringify(data.data, null, 2)}\n\nYou can now save this to your portfolio or start over if you'd like to make changes.`
-          }];
-        }
-      } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Ollama Interview Error:', response.status, errorData);
-        messages = [...messages, {
-          role: 'assistant',
-          content: `Sorry, I encountered an error: ${errorData.error || 'Please try again.'}`
-        }];
-      }
-    } catch (error) {
-      console.error('Ollama Interview Exception:', error);
+      // Add AI response
       messages = [...messages, {
         role: 'assistant',
-        content: 'Failed to connect to the AI service. Please make sure Ollama is running and the backend is accessible.'
+        content: response
+      }];
+    } catch (error) {
+      messages = [...messages, {
+        role: 'assistant',
+        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}. Make sure Ollama is running.`
       }];
     } finally {
       loading = false;

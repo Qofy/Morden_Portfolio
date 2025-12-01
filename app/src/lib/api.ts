@@ -12,11 +12,16 @@ export interface OllamaResponse {
 
 export async function sendMessageToOllama(userMessage: string, portfolioData?: any): Promise<string> {
   try {
-    // Generate dynamic system prompt if portfolio data is provided
+    // Use custom system prompt if provided, otherwise generate default
     let contextPrompt = systemPrompt;
 
     if (portfolioData) {
-      contextPrompt = `You are an AI assistant representing ${portfolioData.personal?.name || 'the portfolio owner'}.
+      // Check if custom system prompt is provided (for interviews)
+      if (portfolioData.systemPrompt) {
+        contextPrompt = portfolioData.systemPrompt;
+      } else {
+        // Default portfolio assistant prompt
+        contextPrompt = `You are an AI assistant representing ${portfolioData.personal?.name || 'the portfolio owner'}.
 Here is information about them:
 - Name: ${portfolioData.personal?.name}
 - Title: ${portfolioData.personal?.title}
@@ -24,6 +29,7 @@ Here is information about them:
 - Bio: ${portfolioData.personal?.bio}
 
 Answer questions about their experience, skills, and projects based on this information. Be helpful, professional, and concise.`;
+      }
     }
 
     const prompt = `${contextPrompt}\n\nUser: ${userMessage}\n\nAssistant:`;
