@@ -1,11 +1,16 @@
 <script lang="ts">
   import { X, Send, Loader, ChevronDown } from 'lucide-svelte';
-  import { chatStore, type Message } from '../lib/stores';
+  import { chatStore, portfolioStore, type Message } from '../lib/stores';
   import { sendMessageToOllama } from '../lib/api';
 
   let messageInput = '';
   let chatContainer: HTMLDivElement;
   let shouldAutoScroll = true;
+  let currentPortfolio: any = null;
+
+  portfolioStore.subscribe((data) => {
+    currentPortfolio = data;
+  });
 
   function scrollToBottom() {
     if (chatContainer && shouldAutoScroll) {
@@ -45,7 +50,7 @@
     setTimeout(scrollToBottom, 50);
 
     try {
-      const response = await sendMessageToOllama(userMessage.content);
+      const response = await sendMessageToOllama(userMessage.content, currentPortfolio);
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),

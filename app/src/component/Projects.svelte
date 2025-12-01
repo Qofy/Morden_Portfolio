@@ -1,8 +1,15 @@
 <script lang="ts">
   import { ExternalLink, Github } from 'lucide-svelte';
   import { portfolioData } from '../lib/data';
+  import { portfolioStore } from '../lib/stores';
 
-  const { projects } = portfolioData;
+  let projects = portfolioData.projects;
+
+  portfolioStore.subscribe((data) => {
+    if (data) {
+      projects = data.projects || portfolioData.projects;
+    }
+  });
 </script>
 
 <section class="projects-section" id="projects">

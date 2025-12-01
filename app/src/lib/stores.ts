@@ -163,3 +163,62 @@ function createAuthStore() {
 }
 
 export const authStore = createAuthStore();
+
+// Portfolio Store
+export interface PortfolioData {
+  personal: {
+    name: string;
+    title: string;
+    location: string;
+    bio: string;
+    photo: string;
+    resumeUrl: string;
+  };
+  socialLinks: Array<{ name: string; icon: string; url: string }>;
+  navigation: Array<{ label: string; href: string }>;
+  workExperience: Array<any>;
+  education: Array<any>;
+  projects: Array<any>;
+  skills: {
+    frontend: string[];
+    backend: string[];
+    tools: string[];
+    other: string[];
+  };
+}
+
+function createPortfolioStore() {
+  const { subscribe, set, update } = writable<PortfolioData | null>(null);
+
+  return {
+    subscribe,
+    loadPortfolio: async (username?: string) => {
+      try {
+        let url = 'http://localhost:3500/api/portfolio/';
+        if (username) {
+          url += username;
+        } else {
+          // Load default portfolio or return empty structure
+          set(null);
+          return;
+        }
+
+        const response = await fetch(url);
+        if (response.ok) {
+          const data = await response.json();
+          set(data);
+          return data;
+        } else {
+          set(null);
+        }
+      } catch (error) {
+        console.error('Failed to load portfolio:', error);
+        set(null);
+      }
+    },
+    clear: () => set(null),
+    set
+  };
+}
+
+export const portfolioStore = createPortfolioStore();

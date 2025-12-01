@@ -1,9 +1,17 @@
 <script lang="ts">
   import { portfolioData } from '../lib/data';
+  import { portfolioStore } from '../lib/stores';
 
-  const { workExperience, education } = portfolioData;
-
+  let workExperience = portfolioData.workExperience;
+  let education = portfolioData.education;
   let activeTab: 'work' | 'education' = 'work';
+
+  portfolioStore.subscribe((data) => {
+    if (data) {
+      workExperience = data.workExperience || portfolioData.workExperience;
+      education = data.education || portfolioData.education;
+    }
+  });
 </script>
 
 <section class="timeline-section" id="experience">

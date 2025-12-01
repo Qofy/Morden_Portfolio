@@ -1,10 +1,17 @@
 <script lang="ts">
   import { Mail, Github, Linkedin, MapPin } from 'lucide-svelte';
   import { portfolioData } from '../lib/data';
+  import { portfolioStore } from '../lib/stores';
 
-  const { personal } = portfolioData;
+  let personal = portfolioData.personal;
 
-  const contactInfo = [
+  portfolioStore.subscribe((data) => {
+    if (data) {
+      personal = data.personal || portfolioData.personal;
+    }
+  });
+
+  $: contactInfo = [
     { icon: Mail, label: 'Email', value: 'safokofi888@gmail.com', href: 'mailto:safokofi888@gmail.com' },
     { icon: MapPin, label: 'Location', value: personal.location, href: null },
   ];

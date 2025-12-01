@@ -1,7 +1,7 @@
 import { systemPrompt } from './data';
 
 const OLLAMA_API_URL = 'http://localhost:11434/api/generate';
-const MODEL_NAME = 'qwen2.5:0.5b'; 
+const MODEL_NAME = 'qwen2.5:0.5b';
 
 export interface OllamaResponse {
   model: string;
@@ -10,9 +10,23 @@ export interface OllamaResponse {
   done: boolean;
 }
 
-export async function sendMessageToOllama(userMessage: string): Promise<string> {
+export async function sendMessageToOllama(userMessage: string, portfolioData?: any): Promise<string> {
   try {
-    const prompt = `${systemPrompt}\n\n${userMessage}`;
+    // Generate dynamic system prompt if portfolio data is provided
+    let contextPrompt = systemPrompt;
+
+    if (portfolioData) {
+      contextPrompt = `You are an AI assistant representing ${portfolioData.personal?.name || 'the portfolio owner'}.
+Here is information about them:
+- Name: ${portfolioData.personal?.name}
+- Title: ${portfolioData.personal?.title}
+- Location: ${portfolioData.personal?.location}
+- Bio: ${portfolioData.personal?.bio}
+
+Answer questions about their experience, skills, and projects based on this information. Be helpful, professional, and concise.`;
+    }
+
+    const prompt = `${contextPrompt}\n\nUser: ${userMessage}\n\nAssistant:`;
 
     const response = await fetch(OLLAMA_API_URL, {
       method: 'POST',

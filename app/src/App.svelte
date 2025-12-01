@@ -1,8 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { fetchPortfolioByUsername } from './lib/api';
   import { portfolioData } from './lib/data';
-  import { authStore } from './lib/stores';
+  import { authStore, portfolioStore } from './lib/stores';
   import Header from './component/Header.svelte';
   import Hero from './component/Hero.svelte';
   import WorkExperience from './component/WorkExperience.svelte';
@@ -15,18 +14,23 @@
   import Register from './pages/Register.svelte';
   import Dashboard from './pages/Dashboard.svelte';
 
-  let currentPortfolio = portfolioData;
-  let loading = true;
   let currentRoute = '';
   let isAuthenticated = false;
+  let portfolio: any = null;
+  let loading = true;
 
   // Subscribe to auth state
   authStore.subscribe((state) => {
     isAuthenticated = state.isAuthenticated;
   });
 
-  // Handle routing
-  function updateRoute() {
+  // Subscribe to portfolio data
+  portfolioStore.subscribe((data) => {
+    portfolio = data || portfolioData; // Fallback to default data
+  });
+
+  // Handle routing and load portfolio
+  async function updateRoute() {
     const hash = window.location.hash.slice(1); // Remove '#'
     currentRoute = hash || '';
 
@@ -41,25 +45,24 @@
       window.location.hash = '#dashboard';
       return;
     }
+
+    // Load portfolio if viewing a username (not a special route)
+    if (currentRoute && !['login', 'register', 'dashboard'].includes(currentRoute)) {
+      await portfolioStore.loadPortfolio(currentRoute);
+    } else if (!currentRoute) {
+      // On home, use default portfolio
+      portfolioStore.set(portfolioData);
+    }
   }
 
   onMount(() => {
     // Set up route listener
     window.addEventListener('hashchange', updateRoute);
-    updateRoute();
 
-    // Load portfolio data if viewing a username
-    const hash = window.location.hash.slice(1);
-    if (hash && !['login', 'register', 'dashboard'].includes(hash)) {
-      // Treat hash as username
-      fetchPortfolioByUsername(hash).then((data) => {
-        if (data) {
-          currentPortfolio = data;
-        }
-      });
-    }
-
-    loading = false;
+    // Initial load
+    updateRoute().then(() => {
+      loading = false;
+    });
 
     return () => {
       window.removeEventListener('hashchange', updateRoute);

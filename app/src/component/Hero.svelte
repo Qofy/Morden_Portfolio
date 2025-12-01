@@ -1,9 +1,17 @@
 <script lang="ts">
   import { FileText, Linkedin, Github, Mail, ArrowDown, Bot } from 'lucide-svelte';
   import { portfolioData } from '../lib/data';
-  import { chatStore } from '../lib/stores';
+  import { chatStore, portfolioStore } from '../lib/stores';
 
-  const { personal, socialLinks } = portfolioData;
+  let personal = portfolioData.personal;
+  let socialLinks = portfolioData.socialLinks;
+
+  portfolioStore.subscribe((data) => {
+    if (data) {
+      personal = data.personal || portfolioData.personal;
+      socialLinks = data.socialLinks || portfolioData.socialLinks;
+    }
+  });
 </script>
 
 <section class="hero" id="home">

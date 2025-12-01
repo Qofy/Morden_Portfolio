@@ -1,15 +1,20 @@
 <script lang="ts">
   import { Sun, Moon, Briefcase, LogIn, LogOut } from 'lucide-svelte';
   import { portfolioData } from '../lib/data';
-  import { authStore } from '../lib/stores';
+  import { authStore, portfolioStore } from '../lib/stores';
 
-  const { navigation } = portfolioData;
-
+  let navigation = portfolioData.navigation;
   let isDark = true;
   let isAuthenticated = false;
 
   authStore.subscribe((state) => {
     isAuthenticated = state.isAuthenticated;
+  });
+
+  portfolioStore.subscribe((data) => {
+    if (data) {
+      navigation = data.navigation || portfolioData.navigation;
+    }
   });
 
   function toggleTheme() {
