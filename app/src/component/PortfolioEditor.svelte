@@ -165,6 +165,19 @@
   function stringToArray(str: string): string[] {
     return str.split(',').map(s => s.trim()).filter(s => s);
   }
+
+  function handleProjectImageUpload(event: Event, index: number) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        projects[index].image = evt.target?.result as string;
+        projects = projects; // Trigger reactivity
+      };
+      reader.readAsDataURL(file);
+    }
+  }
 </script>
 
 <div class="editor">
@@ -240,6 +253,146 @@
               </div>
             </div>
             <button class="btn-remove" on:click={() => removeSocialLink(i)}>Remove</button>
+          </div>
+        {/each}
+      </section>
+
+      <!-- Work Experience -->
+      <section class="editor-section">
+        <div class="section-header">
+          <h3>Work Experience</h3>
+          <button class="btn-add" on:click={addWorkExperience}>+ Add Experience</button>
+        </div>
+        {#each workExperience as work, i}
+          <div class="item-card">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Period</label>
+                <input type="text" bind:value={work.period} placeholder="e.g., 2020-2023" />
+              </div>
+              <div class="form-group">
+                <label>Position</label>
+                <input type="text" bind:value={work.position} placeholder="e.g., Senior Developer" />
+              </div>
+              <div class="form-group">
+                <label>Company</label>
+                <input type="text" bind:value={work.company} placeholder="e.g., Tech Corp" />
+              </div>
+              <div class="form-group">
+                <label>Location</label>
+                <input type="text" bind:value={work.location} placeholder="e.g., Berlin, Germany" />
+              </div>
+              <div class="form-group full-width">
+                <label>Description (comma-separated)</label>
+                <textarea
+                  on:input={(e) => {
+                    work.description = stringToArray(e.currentTarget.value);
+                  }}
+                  placeholder="Led team of 5, Built microservices, Improved performance by 40%"
+                  rows="3"
+                >{Array.isArray(work.description) ? arrayToString(work.description) : work.description}</textarea>
+              </div>
+              <div class="form-group full-width">
+                <label>Technologies/Tags (comma-separated)</label>
+                <input
+                  type="text"
+                  value={Array.isArray(work.tags) ? arrayToString(work.tags) : work.tags || ''}
+                  on:input={(e) => (work.tags = stringToArray(e.currentTarget.value))}
+                  placeholder="React, Node.js, AWS, Docker"
+                />
+              </div>
+            </div>
+            <button class="btn-remove" on:click={() => removeWorkExperience(i)}>Remove</button>
+          </div>
+        {/each}
+      </section>
+
+      <!-- Education -->
+      <section class="editor-section">
+        <div class="section-header">
+          <h3>Education</h3>
+          <button class="btn-add" on:click={addEducation}>+ Add Education</button>
+        </div>
+        {#each education as edu, i}
+          <div class="item-card">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Period</label>
+                <input type="text" bind:value={edu.period} placeholder="e.g., 2016-2020" />
+              </div>
+              <div class="form-group">
+                <label>Degree</label>
+                <input type="text" bind:value={edu.degree} placeholder="e.g., Bachelor of Computer Science" />
+              </div>
+              <div class="form-group">
+                <label>Institution</label>
+                <input type="text" bind:value={edu.institution} placeholder="e.g., University of Berlin" />
+              </div>
+              <div class="form-group">
+                <label>Location</label>
+                <input type="text" bind:value={edu.location} placeholder="e.g., Berlin, Germany" />
+              </div>
+              <div class="form-group full-width">
+                <label>Description (comma-separated)</label>
+                <textarea
+                  on:input={(e) => {
+                    if (typeof edu.description === 'string') {
+                      edu.description = stringToArray(edu.description);
+                    }
+                  }}
+                  placeholder="Graduated with honors, Thesis on AI, Active in coding club"
+                  rows="3"
+                >{Array.isArray(edu.description) ? arrayToString(edu.description) : edu.description}</textarea>
+              </div>
+            </div>
+            <button class="btn-remove" on:click={() => removeEducation(i)}>Remove</button>
+          </div>
+        {/each}
+      </section>
+
+      <!-- Projects -->
+      <section class="editor-section">
+        <div class="section-header">
+          <h3>Projects</h3>
+          <button class="btn-add" on:click={addProject}>+ Add Project</button>
+        </div>
+        {#each projects as project, i}
+          <div class="item-card">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Title</label>
+                <input type="text" bind:value={project.title} placeholder="e.g., E-commerce Platform" />
+              </div>
+              <div class="form-group full-width">
+                <label>Description</label>
+                <textarea bind:value={project.description} placeholder="Describe your project" rows="3"></textarea>
+              </div>
+              <div class="form-group full-width">
+                <label>Technologies (comma-separated)</label>
+                <input
+                  type="text"
+                  value={Array.isArray(project.technologies) ? arrayToString(project.technologies) : project.technologies || ''}
+                  on:input={(e) => (project.technologies = stringToArray(e.currentTarget.value))}
+                  placeholder="React, Node.js, MongoDB"
+                />
+              </div>
+              <div class="form-group">
+                <label>Project Image (Upload or Base64)</label>
+                <input type="file" accept="image/*" on:change={(e) => handleProjectImageUpload(e, i)} />
+                {#if project.image}
+                  <img src={project.image} alt="Project" class="preview-image" />
+                {/if}
+              </div>
+              <div class="form-group">
+                <label>Live URL</label>
+                <input type="text" bind:value={project.liveUrl} placeholder="https://..." />
+              </div>
+              <div class="form-group">
+                <label>GitHub URL</label>
+                <input type="text" bind:value={project.githubUrl} placeholder="https://github.com/..." />
+              </div>
+            </div>
+            <button class="btn-remove" on:click={() => removeProject(i)}>Remove</button>
           </div>
         {/each}
       </section>
