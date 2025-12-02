@@ -4,7 +4,12 @@ import { svelte, vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 export default defineConfig({
   root: 'app',
   base: '',
-  plugins: [svelte({ preprocess: vitePreprocess() })],
+  plugins: [
+    svelte({
+      preprocess: vitePreprocess(),
+      hot: !process.env.VITEST
+    })
+  ],
   build: {
     outDir: 'dist',
     emptyOutDir: true
@@ -22,5 +27,8 @@ export default defineConfig({
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp'
     }
+  },
+  optimizeDeps: {
+    exclude: ['@roxi/routify']
   }
 });
