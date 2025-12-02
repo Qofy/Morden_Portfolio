@@ -403,7 +403,7 @@
   }
 
   .btn-add:hover {
-    background: #667eea;
+    background: var(--bg-secondary);
     color: white;
   }
 
@@ -457,7 +457,7 @@
   }
 
   .item-card {
-    background: #f8f9fa;
+    background: var(--bg-secondary);
     padding: 20px;
     border-radius: 8px;
     margin-bottom: 16px;
@@ -469,8 +469,8 @@
     top: 16px;
     right: 16px;
     padding: 6px 12px;
-    background: #ff4757;
-    color: white;
+    background: var(--text-secondary);
+    color: var(--text-primary);
     border: none;
     border-radius: 4px;
     font-size: 12px;
@@ -479,7 +479,8 @@
   }
 
   .btn-remove:hover {
-    background: #ee3d4d;
+    background: var(--bg-secondary);
+    border: 1px solid var(--c-border-secondary);
   }
 
   .editor-footer {
