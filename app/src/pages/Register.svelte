@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from '@roxi/routify';
   import { authStore } from '../lib/stores';
 
   let username = '';
@@ -37,7 +38,7 @@
     if (result.success) {
       success = true;
       setTimeout(() => {
-        window.location.hash = '#login';
+        $goto('/login');
       }, 2000);
     } else {
       error = result.error || 'Registration failed. Please try again.';
@@ -45,11 +46,11 @@
   }
 
   function goToLogin() {
-    window.location.hash = '#login';
+    $goto('/login');
   }
 
   function goHome() {
-    window.location.hash = '';
+    $goto('/');
   }
 </script>
 

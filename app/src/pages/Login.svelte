@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { goto } from '@roxi/routify';
   import { authStore } from '../lib/stores';
 
   let email = '';
@@ -15,18 +16,18 @@
     loading = false;
 
     if (result.success) {
-      window.location.hash = '#dashboard';
+      $goto('/dashboard');
     } else {
       error = result.error || 'Login failed. Please try again.';
     }
   }
 
   function goToRegister() {
-    window.location.hash = '#register';
+    $goto('/register');
   }
 
   function goHome() {
-    window.location.hash = '';
+    $goto('/');
   }
 </script>
 

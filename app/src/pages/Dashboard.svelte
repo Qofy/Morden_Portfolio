@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { goto } from '@roxi/routify';
   import { authStore } from '../lib/stores';
   import PortfolioEditor from '../component/PortfolioEditor.svelte';
   import OllamaInterview from '../component/OllamaInterview.svelte';
@@ -13,18 +14,23 @@
   });
 
   onMount(() => {
-    // Check if user is authenticated
+    // Route guard: Check if user is authenticated
     if (!user) {
-      window.location.hash = '#login';
+      $goto('/login');
     }
   });
 
   function handleLogout() {
     authStore.logout();
+    $goto('/login');
   }
 
   function goHome() {
-    window.location.hash = '';
+    if (user?.username) {
+      $goto(`/${user.username}`);
+    } else {
+      $goto('/');
+    }
   }
 </script>
 
