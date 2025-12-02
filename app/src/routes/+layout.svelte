@@ -1,4 +1,12 @@
-<slot />
+<script lang="ts">
+  import { authStore } from '$lib/stores';
+
+  $: user = $authStore.user;
+</script>
+
+<main class="app-container">
+  <slot />
+</main>
 
 <style>
   :global(*) {
@@ -36,6 +44,12 @@
   }
 
   :global(main) {
+    min-height: 100vh;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+  }
+
+  .app-container {
     min-height: 100vh;
     background: var(--bg-primary);
     color: var(--text-primary);

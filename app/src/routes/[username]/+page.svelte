@@ -1,17 +1,17 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { portfolioData } from '../lib/data';
-  import { portfolioStore } from '../lib/stores';
-  import { params } from '@roxi/routify';
+  import { page } from '$app/stores';
+  import { portfolioData } from '$lib/data';
+  import { portfolioStore } from '$lib/stores';
 
-  import Header from '../component/Header.svelte';
-  import Hero from '../component/Hero.svelte';
-  import WorkExperience from '../component/WorkExperience.svelte';
-  import Projects from '../component/Projects.svelte';
-  import Blog from '../component/Blog.svelte';
-  import Contact from '../component/Contact.svelte';
-  import ChatBot from '../component/ChatBot.svelte';
-  import Footer from './Footer.svelte';
+  import Header from '$lib/component/Header.svelte';
+  import Hero from '$lib/component/Hero.svelte';
+  import WorkExperience from '$lib/component/WorkExperience.svelte';
+  import Projects from '$lib/component/Projects.svelte';
+  import Blog from '$lib/component/Blog.svelte';
+  import Contact from '$lib/component/Contact.svelte';
+  import ChatBot from '$lib/component/ChatBot.svelte';
+  import Footer from '../Footer.svelte';
 
   let portfolio: any = null;
   let loading = true;
@@ -23,7 +23,7 @@
   });
 
   onMount(async () => {
-    const username = $params.username;
+    const username = $page.params.username;
 
     if (username) {
       try {
@@ -45,7 +45,7 @@
 {:else if error}
   <div class="error-container">
     <h1>Portfolio Not Found</h1>
-    <p>The portfolio for user "{$params.username}" could not be found.</p>
+    <p>The portfolio for user "{$page.params.username}" could not be found.</p>
     <a href="/">Go to Home</a>
   </div>
 {:else}

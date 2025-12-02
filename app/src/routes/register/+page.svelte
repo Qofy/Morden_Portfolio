@@ -1,46 +1,86 @@
 <script lang="ts">
-  import { goto } from '@roxi/routify';
-  import { authStore } from '../lib/stores';
+  import { goto } from '$app/navigation';
+  import { authStore } from '$lib/stores';
 
+  let username = '';
   let email = '';
   let password = '';
+  let confirmPassword = '';
   let error = '';
+  let success = false;
   let loading = false;
 
-  async function handleLogin() {
+  async function handleRegister() {
     error = '';
+
+    // Validation
+    if (password !== confirmPassword) {
+      error = 'Passwords do not match';
+      return;
+    }
+
+    if (password.length < 6) {
+      error = 'Password must be at least 6 characters';
+      return;
+    }
+
+    if (username.length < 3) {
+      error = 'Username must be at least 3 characters';
+      return;
+    }
+
     loading = true;
 
-    const result = await authStore.login(email, password);
+    const result = await authStore.register(username, email, password);
 
     loading = false;
 
     if (result.success) {
-      $goto('/dashboard');
+      success = true;
+      setTimeout(() => {
+        goto('/login');
+      }, 2000);
     } else {
-      error = result.error || 'Login failed. Please try again.';
+      error = result.error || 'Registration failed. Please try again.';
     }
   }
 
-  function goToRegister() {
-    $goto('/register');
+  function goToLogin() {
+    goto('/login');
   }
 
   function goHome() {
-    $goto('/');
+    goto('/');
   }
 </script>
 
-<div class="login-container">
-  <div class="login-box">
-    <h1>Login to Your Portfolio</h1>
-    <p class="subtitle">Manage and customize your portfolio</p>
+<div class="register-container">
+  <div class="register-box">
+    <h1>Create Your Portfolio</h1>
+    <p class="subtitle">Join and showcase your work</p>
 
-    {#if error}
+    {#if success}
+      <div class="success-message">
+        Account created successfully! Redirecting to login...
+      </div>
+    {:else if error}
       <div class="error-message">{error}</div>
     {/if}
 
-    <form on:submit|preventDefault={handleLogin}>
+    <form on:submit|preventDefault={handleRegister}>
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          bind:value={username}
+          placeholder="Choose a username"
+          required
+          disabled={loading || success}
+        />
+        <small>This will be your portfolio URL</small>
+      </div>
+
       <div class="form-group">
         <label for="email">Email</label>
         <input
@@ -49,7 +89,7 @@
           bind:value={email}
           placeholder="Enter your email"
           required
-          disabled={loading}
+          disabled={loading || success}
         />
       </div>
 
@@ -59,20 +99,32 @@
           type="password"
           id="password"
           bind:value={password}
-          placeholder="Enter your password"
+          placeholder="Create a password (min 6 characters)"
           required
-          disabled={loading}
+          disabled={loading || success}
         />
       </div>
 
-      <button type="submit" class="btn-primary" disabled={loading}>
-        {loading ? 'Logging in...' : 'Login'}
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <input
+          type="password"
+          id="confirmPassword"
+          bind:value={confirmPassword}
+          placeholder="Confirm your password"
+          required
+          disabled={loading || success}
+        />
+      </div>
+
+      <button type="submit" class="btn-primary" disabled={loading || success}>
+        {loading ? 'Creating Account...' : 'Create Account'}
       </button>
     </form>
 
     <div class="links">
-      <button class="link-btn" on:click={goToRegister} disabled={loading}>
-        Don't have an account? Register
+      <button class="link-btn" on:click={goToLogin} disabled={loading}>
+        Already have an account? Login
       </button>
       <button class="link-btn" on:click={goHome} disabled={loading}>
         Back to Home
@@ -82,7 +134,7 @@
 </div>
 
 <style>
-  .login-container {
+  .register-container {
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -91,7 +143,7 @@
     padding: 20px;
   }
 
-  .login-box {
+  .register-box {
     background: var(--bg-secondary);
     border-radius: 12px;
     padding: 40px;
@@ -109,8 +161,15 @@
 
   .subtitle {
     margin: 0 0 32px 0;
-    color: var(--text-secondary);
+    color:var(--text-secondary);
     text-align: center;
+    font-size: 14px;
+  }
+
+  .error-message, .success-message {
+    padding: 12px;
+    border-radius: 6px;
+    margin-bottom: 20px;
     font-size: 14px;
   }
 
@@ -118,10 +177,12 @@
     background: #fee;
     border: 1px solid #fcc;
     color: #c33;
-    padding: 12px;
-    border-radius: 6px;
-    margin-bottom: 20px;
-    font-size: 14px;
+  }
+
+  .success-message {
+    background: #efe;
+    border: 1px solid #cfc;
+    color: #3c3;
   }
 
   .form-group {
@@ -131,7 +192,7 @@
   label {
     display: block;
     margin-bottom: 8px;
-        color: var(--text-secondary);
+    color: var(--text-secondary);
     font-weight: 500;
     font-size: 14px;
   }
@@ -154,6 +215,13 @@
   input:disabled {
     background: #f5f5f5;
     cursor: not-allowed;
+  }
+
+  small {
+    display: block;
+    margin-top: 4px;
+    color: #999;
+    font-size: 12px;
   }
 
   .btn-primary {

@@ -1,10 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { goto } from '@roxi/routify';
-  import { authStore } from '../lib/stores';
-  import PortfolioEditor from '../component/PortfolioEditor.svelte';
-  import OllamaInterview from '../component/OllamaInterview.svelte';
-  import DashboardOverview from '../component/DashboardOverview.svelte';
+  import { goto } from '$app/navigation';
+  import { authStore } from '$lib/stores';
+  import PortfolioEditor from '$lib/component/PortfolioEditor.svelte';
+  import OllamaInterview from '$lib/component/OllamaInterview.svelte';
+  import DashboardOverview from '$lib/component/DashboardOverview.svelte';
 
   let activeTab: 'overview' | 'edit' | 'interview' = 'overview';
   let user: any = null;
@@ -16,20 +16,20 @@
   onMount(() => {
     // Route guard: Check if user is authenticated
     if (!user) {
-      $goto('/login');
+      goto('/login');
     }
   });
 
   function handleLogout() {
     authStore.logout();
-    $goto('/login');
+    goto('/login');
   }
 
   function goHome() {
     if (user?.username) {
-      $goto(`/${user.username}`);
+      goto(`/${user.username}`);
     } else {
-      $goto('/');
+      goto('/');
     }
   }
 </script>

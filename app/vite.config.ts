@@ -1,15 +1,8 @@
 import { defineConfig } from 'vite';
-import { svelte, vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
-  root: 'app',
-  base: '',
-  plugins: [
-    svelte({
-      preprocess: vitePreprocess(),
-      hot: !process.env.VITEST
-    })
-  ],
+  plugins: [sveltekit()],
   build: {
     outDir: 'dist',
     emptyOutDir: true
