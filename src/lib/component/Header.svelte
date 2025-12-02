@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Sun, Moon, Briefcase, LogIn, LogOut } from 'lucide-svelte';
-  import { portfolioData } from '../lib/data';
-  import { authStore, portfolioStore } from '../lib/stores';
+  import { portfolioData } from '$lib/data';
+  import { authStore, portfolioStore } from '$lib/stores';
 
   let navigation = portfolioData.navigation;
   let isDark = true;

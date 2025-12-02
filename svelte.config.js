@@ -5,13 +5,7 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 const config = {
 	preprocess: vitePreprocess(),
 	kit: {
-		adapter: adapter(),
-		files: {
-			routes: 'app/src/routes',
-			lib: 'app/src/lib',
-			assets: 'app/public',
-			appTemplate: 'app/index.html'
-		}
+		adapter: adapter()
 	}
 };
 
