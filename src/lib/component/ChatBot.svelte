@@ -1,7 +1,7 @@
 <script lang="ts">
   import { X, Send, Loader, ChevronDown } from 'lucide-svelte';
-  import { chatStore, portfolioStore, type Message } from '../lib/stores';
-  import { sendMessageToOllama } from '../lib/api';
+  import { chatStore, portfolioStore, type Message } from '$lib/stores';
+  import { sendMessageToOllama } from '$lib/api';
 
   let messageInput = '';
   let chatContainer: HTMLDivElement;

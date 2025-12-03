@@ -1,7 +1,7 @@
 <script lang="ts">
   import { FileText, Linkedin, Github, Mail, ArrowDown, Bot } from 'lucide-svelte';
-  import { portfolioData } from '../lib/data';
-  import { chatStore, portfolioStore } from '../lib/stores';
+  import { portfolioData } from '$lib/data';
+  import { chatStore, portfolioStore } from '$lib/stores';
 
   let personal = portfolioData.personal;
   let socialLinks = portfolioData.socialLinks;

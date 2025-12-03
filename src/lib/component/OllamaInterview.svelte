@@ -1,6 +1,6 @@
 <script lang="ts">
 import{BriefcaseBusiness, GraduationCap,Code,MonitorCog,Eye, Pencil,Bot} from "lucide-svelte"
-import { sendMessageToOllama } from '../lib/api';
+import { sendMessageToOllama } from '$lib/api';
 
   export let user: any;
 

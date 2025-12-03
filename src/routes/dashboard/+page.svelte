@@ -1,9 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { authStore } from '../lib/stores';
-  import PortfolioEditor from '../component/PortfolioEditor.svelte';
-  import OllamaInterview from '../component/OllamaInterview.svelte';
-  import DashboardOverview from '../component/DashboardOverview.svelte';
+  import { goto } from '$app/navigation';
+  import { authStore } from '$lib/stores';
+  import PortfolioEditor from '$lib/component/PortfolioEditor.svelte';
+  import OllamaInterview from '$lib/component/OllamaInterview.svelte';
+  import DashboardOverview from '$lib/component/DashboardOverview.svelte';
 
   let activeTab: 'overview' | 'edit' | 'interview' = 'overview';
   let user: any = null;
@@ -14,9 +15,9 @@
   });
 
   onMount(() => {
-    // Check if user is authenticated
+    // Route guard: Check if user is authenticated
     if (!user) {
-      window.location.hash = '#login';
+      goto('/login');
     }
 
     // Listen for tab change events from DashboardOverview
@@ -33,10 +34,15 @@
 
   function handleLogout() {
     authStore.logout();
+    goto('/login');
   }
 
   function goHome() {
-    window.location.hash = '';
+    if (user?.username) {
+      goto(`/${user.username}`);
+    } else {
+      goto('/');
+    }
   }
 
   function handleSaveComplete() {

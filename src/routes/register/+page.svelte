@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { authStore } from '../lib/stores';
+  import { goto } from '$app/navigation';
+  import { authStore } from '$lib/stores';
 
   let username = '';
   let email = '';
@@ -37,7 +38,7 @@
     if (result.success) {
       success = true;
       setTimeout(() => {
-        window.location.hash = '#login';
+        goto('/login');
       }, 2000);
     } else {
       error = result.error || 'Registration failed. Please try again.';
@@ -45,11 +46,11 @@
   }
 
   function goToLogin() {
-    window.location.hash = '#login';
+    goto('/login');
   }
 
   function goHome() {
-    window.location.hash = '';
+    goto('/');
   }
 </script>
 

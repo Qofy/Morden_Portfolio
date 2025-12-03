@@ -3,13 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kofi Safo Agyekum - Full Stack Developer</title>
-    <meta name="description" content="Portfolio of Kofi Safo Agyekum - Full Stack Developer specializing in modern web technologies" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-      html, body, #app {
+      html, body {
         height: 100%;
         margin: 0;
         scroll-behavior: smooth;
@@ -19,9 +17,9 @@
         color: #e7e9ea;
       }
     </style>
+    %sveltekit.head%
   </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
+  <body data-sveltekit-preload-data="hover">
+    <div style="display: contents">%sveltekit.body%</div>
   </body>
 </html>

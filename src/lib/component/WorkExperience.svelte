@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { portfolioData } from '../lib/data';
-  import { portfolioStore } from '../lib/stores';
+  import { portfolioData } from '$lib/data';
+  import { portfolioStore } from '$lib/stores';
 
   let workExperience = portfolioData.workExperience;
   let education = portfolioData.education;
