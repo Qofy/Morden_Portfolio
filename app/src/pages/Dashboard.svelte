@@ -7,6 +7,7 @@
 
   let activeTab: 'overview' | 'edit' | 'interview' = 'overview';
   let user: any = null;
+  let overviewKey = 0; // Key to force re-render of overview
 
   authStore.subscribe((state) => {
     user = state.user;
@@ -17,6 +18,17 @@
     if (!user) {
       window.location.hash = '#login';
     }
+
+    // Listen for tab change events from DashboardOverview
+    const handleTabChange = (event: CustomEvent) => {
+      activeTab = event.detail;
+    };
+
+    window.addEventListener('changeTab', handleTabChange as EventListener);
+
+    return () => {
+      window.removeEventListener('changeTab', handleTabChange as EventListener);
+    };
   });
 
   function handleLogout() {
@@ -25,6 +37,11 @@
 
   function goHome() {
     window.location.hash = '';
+  }
+
+  function handleSaveComplete() {
+    // Refresh overview when portfolio is saved
+    overviewKey++;
   }
 </script>
 
@@ -72,9 +89,11 @@
 
       <div class="tab-content">
         {#if activeTab === 'overview'}
-          <DashboardOverview {user} />
+          {#key overviewKey}
+            <DashboardOverview {user} />
+          {/key}
         {:else if activeTab === 'edit'}
-          <PortfolioEditor {user} />
+          <PortfolioEditor {user} on:saveComplete={handleSaveComplete} />
         {:else if activeTab === 'interview'}
           <OllamaInterview {user} />
         {/if}

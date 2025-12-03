@@ -12,7 +12,7 @@
   });
 
   $: contactInfo = [
-    { icon: Mail, label: 'Email', value: 'safokofi888@gmail.com', href: 'mailto:safokofi888@gmail.com' },
+    { icon: Mail, label: 'Email', value: personal.email || 'safokofi888@gmail.com', href: `mailto:${personal.email || 'safokofi888@gmail.com'}` },
     { icon: MapPin, label: 'Location', value: personal.location, href: null },
   ];
 </script>

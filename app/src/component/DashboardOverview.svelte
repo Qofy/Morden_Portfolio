@@ -34,15 +34,19 @@ import{BriefcaseBusiness, GraduationCap,Code,MonitorCog,Eye, Pencil,Bot} from "l
 
   function calculateStats() {
     if (portfolioData) {
+      // Calculate total skills from all categories dynamically
+      let totalSkills = 0;
+      if (portfolioData.skills && typeof portfolioData.skills === 'object') {
+        totalSkills = Object.values(portfolioData.skills).reduce((sum, skillArray: any) => {
+          return sum + (Array.isArray(skillArray) ? skillArray.length : 0);
+        }, 0);
+      }
+
       stats = {
         workExperience: portfolioData.workExperience?.length || 0,
         education: portfolioData.education?.length || 0,
         projects: portfolioData.projects?.length || 0,
-        skills: portfolioData.skills ?
-          (portfolioData.skills.frontend?.length || 0) +
-          (portfolioData.skills.backend?.length || 0) +
-          (portfolioData.skills.tools?.length || 0) +
-          (portfolioData.skills.other?.length || 0) : 0
+        skills: totalSkills
       };
     }
   }
@@ -138,7 +142,7 @@ import{BriefcaseBusiness, GraduationCap,Code,MonitorCog,Eye, Pencil,Bot} from "l
         </div>
         <div class="info-item">
           <label>Email:</label>
-          <span>{user.email}</span>
+          <span>{portfolioData?.personal?.email || user.email || "Not set"}</span>
         </div>
       </div>
     </div>

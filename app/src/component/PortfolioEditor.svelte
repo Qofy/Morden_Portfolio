@@ -1,7 +1,9 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, createEventDispatcher } from 'svelte';
 
   export let user: any;
+
+  const dispatch = createEventDispatcher();
 
   let loading = true;
   let saving = false;
@@ -9,16 +11,11 @@
   let messageType: 'success' | 'error' | '' = '';
 
   // Portfolio data
-  let personal = { name: '', title: '', location: '', bio: '', photo: '', resumeUrl: '' };
+  let personal = { name: '', title: '', location: '', bio: '', photo: '', resumeUrl: '', email: '' };
   let workExperience: any[] = [];
   let education: any[] = [];
   let projects: any[] = [];
-  let skills: { frontend: string[]; backend: string[]; tools: string[]; other: string[] } = {
-    frontend: [],
-    backend: [],
-    tools: [],
-    other: []
-  };
+  let skills: { [category: string]: string[] } = {};
   let socialLinks: any[] = [];
 
   onMount(async () => {
@@ -68,6 +65,7 @@
 
       if (response.ok) {
         showMessage('Portfolio saved successfully!', 'success');
+        dispatch('saveComplete');
       } else {
         const error = await response.json();
         showMessage(error.error || 'Failed to save portfolio', 'error');
@@ -158,8 +156,28 @@
     socialLinks = socialLinks.filter((_, i) => i !== index);
   }
 
+  function addSkillCategory() {
+    const categoryName = prompt('Enter skill category name (e.g., Frontend, Backend, DevOps, Mobile):');
+    if (categoryName && categoryName.trim()) {
+      const key = categoryName.trim();
+      if (!skills[key]) {
+        skills[key] = [];
+        skills = { ...skills }; // Trigger reactivity
+      } else {
+        alert('This category already exists!');
+      }
+    }
+  }
+
+  function removeSkillCategory(category: string) {
+    if (confirm(`Are you sure you want to remove the "${category}" category?`)) {
+      delete skills[category];
+      skills = { ...skills }; // Trigger reactivity
+    }
+  }
+
   function arrayToString(arr: string[]): string {
-    return arr.join(', ');
+    return arr?.join(', ') || '';
   }
 
   function stringToArray(str: string): string[] {
@@ -211,6 +229,10 @@
           <div class="form-group">
             <label>Location</label>
             <input type="text" bind:value={personal.location} placeholder="e.g., Berlin, Germany" />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" bind:value={personal.email} placeholder="your.email@example.com" />
           </div>
           <div class="form-group full-width">
             <label>Bio</label>
@@ -399,45 +421,34 @@
 
       <!-- Skills -->
       <section class="editor-section">
-        <h3>Skills</h3>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Frontend (comma-separated)</label>
-            <input
-              type="text"
-              value={arrayToString(skills.frontend)}
-              on:input={(e) => (skills.frontend = stringToArray(e.currentTarget.value))}
-              placeholder="React, Vue, Svelte"
-            />
-          </div>
-          <div class="form-group">
-            <label>Backend (comma-separated)</label>
-            <input
-              type="text"
-              value={arrayToString(skills.backend)}
-              on:input={(e) => (skills.backend = stringToArray(e.currentTarget.value))}
-              placeholder="Node.js, Python, Go"
-            />
-          </div>
-          <div class="form-group">
-            <label>Tools (comma-separated)</label>
-            <input
-              type="text"
-              value={arrayToString(skills.tools)}
-              on:input={(e) => (skills.tools = stringToArray(e.currentTarget.value))}
-              placeholder="Git, Docker, AWS"
-            />
-          </div>
-          <div class="form-group">
-            <label>Other (comma-separated)</label>
-            <input
-              type="text"
-              value={arrayToString(skills.other)}
-              on:input={(e) => (skills.other = stringToArray(e.currentTarget.value))}
-              placeholder="Figma, Photoshop"
-            />
-          </div>
+        <div class="section-header">
+          <h3>Skills</h3>
+          <button class="btn-add" on:click={addSkillCategory}>+ Add Category</button>
         </div>
+        {#if Object.keys(skills).length === 0}
+          <p class="empty-message">No skill categories yet. Click "+ Add Category" to create one!</p>
+        {:else}
+          {#each Object.keys(skills) as category}
+            <div class="item-card">
+              <div class="category-header">
+                <h4>{category}</h4>
+                <button class="btn-remove-small" on:click={() => removeSkillCategory(category)}>Remove Category</button>
+              </div>
+              <div class="form-group full-width">
+                <label>Skills (comma-separated)</label>
+                <input
+                  type="text"
+                  value={arrayToString(skills[category])}
+                  on:input={(e) => {
+                    skills[category] = stringToArray(e.currentTarget.value);
+                    skills = { ...skills };
+                  }}
+                  placeholder="Enter skills separated by commas"
+                />
+              </div>
+            </div>
+          {/each}
+        {/if}
       </section>
 
       <!-- Save Button at Bottom -->
@@ -634,6 +645,48 @@
   .btn-remove:hover {
     background: var(--bg-secondary);
     border: 1px solid var(--c-border-secondary);
+  }
+
+  .category-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .category-header h4 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .btn-remove-small {
+    padding: 6px 12px;
+    background: rgba(255, 59, 48, 0.1);
+    color: #ff3b30;
+    border: 1px solid rgba(255, 59, 48, 0.3);
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .btn-remove-small:hover {
+    background: rgba(255, 59, 48, 0.2);
+    border-color: #ff3b30;
+  }
+
+  .empty-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+    font-style: italic;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 2px dashed rgba(255, 255, 255, 0.1);
   }
 
   .editor-footer {
