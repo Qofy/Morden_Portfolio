@@ -17,6 +17,7 @@
   let projects: any[] = [];
   let skills: { [category: string]: string[] } = {};
   let socialLinks: any[] = [];
+  let blogPosts: any[] = [];
 
   onMount(async () => {
     await fetchPortfolioData();
@@ -27,12 +28,14 @@
       const response = await fetch(`http://localhost:3500/api/portfolio/${user.username}`);
       if (response.ok) {
         const data = await response.json();
-        personal = data.personal || personal;
+        // Merge personal data to preserve all fields including email
+        personal = { ...personal, ...(data.personal || {}) };
         workExperience = data.workExperience || [];
         education = data.education || [];
         projects = data.projects || [];
         skills = data.skills || skills;
         socialLinks = data.socialLinks || [];
+        blogPosts = data.blogPosts || [];
       }
     } catch (error) {
       console.error('Failed to fetch portfolio:', error);
@@ -60,6 +63,7 @@
           projects,
           skills,
           socialLinks,
+          blogPosts,
         }),
       });
 
@@ -154,6 +158,38 @@
 
   function removeSocialLink(index: number) {
     socialLinks = socialLinks.filter((_, i) => i !== index);
+  }
+
+  function addBlogPost() {
+    blogPosts = [...blogPosts, {
+      title: '',
+      excerpt: '',
+      content: '',
+      coverImage: '',
+      tags: [],
+      publishedDate: new Date().toISOString().split('T')[0],
+      readingTime: 5
+    }];
+  }
+
+  function removeBlogPost(index: number) {
+    blogPosts = blogPosts.filter((_, i) => i !== index);
+  }
+
+  function addBlogTag(postIndex: number) {
+    const tag = prompt('Enter tag name:');
+    if (tag && tag.trim()) {
+      if (!blogPosts[postIndex].tags) {
+        blogPosts[postIndex].tags = [];
+      }
+      blogPosts[postIndex].tags = [...blogPosts[postIndex].tags, tag.trim()];
+      blogPosts = [...blogPosts]; // Trigger reactivity
+    }
+  }
+
+  function removeBlogTag(postIndex: number, tagIndex: number) {
+    blogPosts[postIndex].tags = blogPosts[postIndex].tags.filter((_, i) => i !== tagIndex);
+    blogPosts = [...blogPosts]; // Trigger reactivity
   }
 
   function addSkillCategory() {
@@ -275,6 +311,57 @@
               </div>
             </div>
             <button class="btn-remove" on:click={() => removeSocialLink(i)}>Remove</button>
+          </div>
+        {/each}
+      </section>
+
+      <!-- Blog Posts -->
+      <section class="editor-section">
+        <div class="section-header">
+          <h3>Blog Posts</h3>
+          <button class="btn-add" on:click={addBlogPost}>+ Add Blog Post</button>
+        </div>
+        {#each blogPosts as post, i}
+          <div class="item-card">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Title</label>
+                <input type="text" bind:value={post.title} placeholder="Blog post title" />
+              </div>
+              <div class="form-group">
+                <label>Published Date</label>
+                <input type="date" bind:value={post.publishedDate} />
+              </div>
+              <div class="form-group">
+                <label>Reading Time (minutes)</label>
+                <input type="number" bind:value={post.readingTime} min="1" placeholder="5" />
+              </div>
+              <div class="form-group full-width">
+                <label>Cover Image URL</label>
+                <input type="text" bind:value={post.coverImage} placeholder="https://..." />
+              </div>
+              <div class="form-group full-width">
+                <label>Excerpt</label>
+                <textarea bind:value={post.excerpt} placeholder="Short description of your blog post..." rows="2"></textarea>
+              </div>
+              <div class="form-group full-width">
+                <label>Content</label>
+                <textarea bind:value={post.content} placeholder="Full blog post content..." rows="8"></textarea>
+              </div>
+              <div class="form-group full-width">
+                <label>Tags</label>
+                <div class="tags-container">
+                  {#each post.tags || [] as tag, tagIndex}
+                    <span class="tag">
+                      {tag}
+                      <button type="button" class="tag-remove" on:click={() => removeBlogTag(i, tagIndex)}>×</button>
+                    </span>
+                  {/each}
+                  <button type="button" class="btn-add-tag" on:click={() => addBlogTag(i)}>+ Add Tag</button>
+                </div>
+              </div>
+            </div>
+            <button class="btn-remove" on:click={() => removeBlogPost(i)}>Remove</button>
           </div>
         {/each}
       </section>
@@ -645,6 +732,55 @@
   .btn-remove:hover {
     background: var(--bg-secondary);
     border: 1px solid var(--c-border-secondary);
+  }
+
+  .tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--text-primary);
+  }
+
+  .tag-remove {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0 4px;
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  .tag-remove:hover {
+    color: #ff3b30;
+  }
+
+  .btn-add-tag {
+    padding: 4px 12px;
+    background: transparent;
+    border: 1px dashed var(--border-color);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-add-tag:hover {
+    border-color: var(--text-secondary);
+    color: var(--text-primary);
   }
 
   .category-header {

@@ -173,18 +173,24 @@ export interface PortfolioData {
     bio: string;
     photo: string;
     resumeUrl: string;
+    email?: string;
   };
   socialLinks: Array<{ name: string; icon: string; url: string }>;
   navigation: Array<{ label: string; href: string }>;
   workExperience: Array<any>;
   education: Array<any>;
   projects: Array<any>;
-  skills: {
-    frontend: string[];
-    backend: string[];
-    tools: string[];
-    other: string[];
-  };
+  skills: { [category: string]: string[] };
+  blogPosts?: Array<{
+    id?: number;
+    title: string;
+    excerpt: string;
+    content: string;
+    coverImage: string;
+    tags: string[];
+    publishedDate: string;
+    readingTime: number;
+  }>;
 }
 
 function createPortfolioStore() {

@@ -4,10 +4,12 @@
   import { portfolioStore } from '../lib/stores';
 
   let personal = portfolioData.personal;
+  let socialLinks = portfolioData.socialLinks;
 
   portfolioStore.subscribe((data) => {
     if (data) {
       personal = data.personal || portfolioData.personal;
+      socialLinks = data.socialLinks || portfolioData.socialLinks;
     }
   });
 
@@ -15,6 +17,11 @@
     { icon: Mail, label: 'Email', value: personal.email || 'safokofi888@gmail.com', href: `mailto:${personal.email || 'safokofi888@gmail.com'}` },
     { icon: MapPin, label: 'Location', value: personal.location, href: null },
   ];
+
+  // Get social links dynamically
+  $: githubLink = socialLinks.find((link: any) => link.name === 'GitHub')?.url || 'https://github.com/Qofy';
+  $: linkedinLink = socialLinks.find((link: any) => link.name === 'LinkedIn')?.url || 'https://www.linkedin.com/in/kofi-agyekum-870569298/';
+  $: emailLink = `mailto:${personal.email || 'safokofi888@gmail.com'}`;
 </script>
 
 <section class="contact-section" id="contact">
@@ -50,15 +57,15 @@
       <div class="social-links">
         <h3>Connect with me</h3>
         <div class="links-grid">
-          <a href="https://github.com/Qofy" target="_blank" rel="noopener noreferrer" class="social-link">
+          <a href={githubLink} target="_blank" rel="noopener noreferrer" class="social-link">
             <Github size={24} />
             <span>GitHub</span>
           </a>
-          <a href="https://www.linkedin.com/in/kofi-agyekum-870569298/" target="_blank" rel="noopener noreferrer" class="social-link">
+          <a href={linkedinLink} target="_blank" rel="noopener noreferrer" class="social-link">
             <Linkedin size={24} />
             <span>LinkedIn</span>
           </a>
-          <a href="mailto:safokofi888@gmail.com" class="social-link">
+          <a href={emailLink} class="social-link">
             <Mail size={24} />
             <span>Email</span>
           </a>
