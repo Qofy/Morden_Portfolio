@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Sun, Moon, Briefcase, LogIn, LogOut } from 'lucide-svelte';
+  import { goto } from '$app/navigation';
   import { portfolioData } from '$lib/data';
   import { authStore, portfolioStore } from '$lib/stores';
 
@@ -24,6 +25,15 @@
 
   function handleLogout() {
     authStore.logout();
+    goto('/');
+  }
+
+  function navigateToDashboard() {
+    goto('/dashboard');
+  }
+
+  function navigateToLogin() {
+    goto('/login');
   }
 </script>
 
@@ -45,16 +55,16 @@
       </button>
 
       {#if isAuthenticated}
-        <a href="#dashboard" class="dashboard-link" aria-label="Dashboard">
+        <button class="dashboard-link" on:click={navigateToDashboard} aria-label="Dashboard">
           <Briefcase size={20} />
-        </a>
+        </button>
         <button class="logout-btn" on:click={handleLogout} aria-label="Logout">
           <LogOut size={20} />
         </button>
       {:else}
-        <a href="#login" class="login-link" aria-label="Login">
+        <button class="login-link" on:click={navigateToLogin} aria-label="Login">
           <LogIn size={20} />
-        </a>
+        </button>
       {/if}
     </div>
   </nav>

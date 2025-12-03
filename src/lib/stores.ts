@@ -143,8 +143,7 @@ function createAuthStore() {
         isLoading: false
       });
 
-      // Redirect to home
-      window.location.hash = '';
+      // Note: Redirect is handled by the component calling logout
     },
     checkAuth: async () => {
       const token = localStorage.getItem('authToken');

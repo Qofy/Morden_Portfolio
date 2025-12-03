@@ -2,6 +2,7 @@
 import{BriefcaseBusiness, GraduationCap,Code,MonitorCog,Eye, Pencil,Bot} from "lucide-svelte"
 
   import { onMount } from 'svelte';
+  import { goto } from '$app/navigation';
 
   export let user: any;
 
@@ -54,11 +55,15 @@ import{BriefcaseBusiness, GraduationCap,Code,MonitorCog,Eye, Pencil,Bot} from "l
   async function downloadPDF() {
     // For now, we'll open the portfolio in a new window and let the user print to PDF
     // In a production app, you'd use a library like jsPDF or html2pdf
-    const url = `${window.location.origin}/#${user.username}`;
+    const url = `${window.location.origin}/${user.username}`;
     window.open(url, '_blank');
 
     // Show instructions
     alert('To download as PDF:\n1. Click Print (Ctrl/Cmd+P)\n2. Select "Save as PDF" as the destination\n3. Click Save\n\nFuture versions will have direct PDF export!');
+  }
+
+  function viewPublicPortfolio() {
+    goto(`/${user.username}`);
   }
 
   function getCompletionPercentage(): number {
@@ -150,10 +155,10 @@ import{BriefcaseBusiness, GraduationCap,Code,MonitorCog,Eye, Pencil,Bot} from "l
     <div class="quick-actions">
       <h3>Quick Actions</h3>
       <div class="actions-grid">
-        <a href="#{user.username}" class="action-card">
+        <button class="action-card" on:click={viewPublicPortfolio}>
           <span class="action-icon"><Eye/></span>
           <span>View Public Portfolio</span>
-        </a>
+        </button>
         <button class="action-card" on:click={() => window.dispatchEvent(new CustomEvent('changeTab', { detail: 'edit' }))}>
           <span class="action-icon"><Pencil/></span>
           <span>Edit Portfolio</span>

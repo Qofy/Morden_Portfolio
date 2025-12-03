@@ -1,7 +1,7 @@
 <script lang="ts">
   import { Calendar, Clock } from 'lucide-svelte';
-  import { portfolioData } from '../lib/data';
-  import { portfolioStore } from '../lib/stores';
+  import { portfolioData } from '$lib/data';
+  import { portfolioStore } from '$lib/stores';
 
   let blogPosts: any[] = [];
 
