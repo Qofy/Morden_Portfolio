@@ -106,17 +106,17 @@
     <div class="chat-messages" bind:this={chatContainer} on:scroll={handleScroll}>
       {#if $chatStore.messages.length === 0}
         <div class="welcome-message">
-          <p>👋 Hi! I'm conducting a virtual portfolio interview.</p>
-          <p>I can only answer questions about this portfolio owner's professional information:</p>
+          <p>👋 Hi! I'm here to answer questions about my professional background.</p>
+          <p>Feel free to ask me about:</p>
           <ul>
-            <li>"What is their work experience?"</li>
-            <li>"What technologies and skills do they have?"</li>
-            <li>"Tell me about their projects"</li>
-            <li>"What is their educational background?"</li>
-            <li>"Do they have any blog posts?"</li>
+            <li>"What is your work experience?"</li>
+            <li>"What technologies and skills do you have?"</li>
+            <li>"Tell me about your projects"</li>
+            <li>"What is your educational background?"</li>
+            <li>"Do you have any blog posts?"</li>
           </ul>
           <p style="font-size: 0.85rem; opacity: 0.8; margin-top: 1rem;">
-            Note: I can only discuss information in this portfolio. I cannot answer general questions or provide coding help.
+            Note: I can only discuss information in my portfolio with 100% accuracy. If you ask about something not in my portfolio, I'll let you know.
           </p>
         </div>
       {/if}
@@ -144,7 +144,7 @@
         type="text"
         bind:value={messageInput}
         on:keypress={handleKeyPress}
-        placeholder="Ask about their experience, skills, or projects..."
+        placeholder="Ask me about my experience, skills, or projects..."
         disabled={$chatStore.isLoading}
       />
       <button

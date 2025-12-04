@@ -1,7 +1,14 @@
 import { systemPrompt } from './data';
 
 const OLLAMA_API_URL = 'http://localhost:11434/api/generate';
-const MODEL_NAME = 'qwen2.5:0.5b';
+const OLLAMA_TAGS_URL = 'http://localhost:11434/api/tags';
+
+// Recommended models (in order of preference):
+// - llama3.2:3b (best balance of speed and accuracy)
+// - mistral:7b (very accurate, slower)
+// - phi3:3.8b (good balance)
+// - qwen2.5:0.5b (fast but unreliable - NOT recommended for accuracy)
+const PREFERRED_MODELS = ['llama3.2:3b', 'llama3.2', 'mistral:7b', 'mistral', 'phi3:3.8b', 'phi3', 'qwen2.5:0.5b'];
 
 export interface OllamaResponse {
   model: string;
@@ -10,8 +17,48 @@ export interface OllamaResponse {
   done: boolean;
 }
 
+/**
+ * Auto-detect the best available Ollama model
+ */
+async function getAvailableModel(): Promise<string> {
+  try {
+    const response = await fetch(OLLAMA_TAGS_URL);
+    if (!response.ok) {
+      throw new Error('Could not fetch available models');
+    }
+
+    const data = await response.json();
+    const availableModels: string[] = data.models?.map((m: any) => m.name) || [];
+
+    // Find first preferred model that's available
+    for (const preferred of PREFERRED_MODELS) {
+      const found = availableModels.find(m => m.includes(preferred.split(':')[0]));
+      if (found) {
+        console.log(`Selected Ollama model: ${found}`);
+        return found;
+      }
+    }
+
+    // Fallback to first available model
+    if (availableModels.length > 0) {
+      console.warn(`No preferred model found. Using: ${availableModels[0]}`);
+      return availableModels[0];
+    }
+
+    // No models available
+    throw new Error('No Ollama models installed. Please run: ollama pull llama3.2:3b');
+  } catch (error) {
+    console.error('Error detecting Ollama model:', error);
+    // Fallback to qwen2.5:0.5b and hope it's installed
+    return 'qwen2.5:0.5b';
+  }
+}
+
 export async function sendMessageToOllama(userMessage: string, portfolioData?: any): Promise<string> {
   try {
+    // Auto-detect best available Ollama model
+    const MODEL_NAME = await getAvailableModel();
+
     // Use custom system prompt if provided, otherwise generate default
     let contextPrompt = systemPrompt;
 
@@ -33,22 +80,23 @@ Personal Information:
 
 Work Experience:
 ${portfolioData.workExperience?.map((exp: any) => `
-  • ${exp.title} at ${exp.company} (${exp.startDate} - ${exp.endDate || 'Present'})
-    ${exp.description || ''}
+  • ${exp.position || exp.title} at ${exp.company} (${exp.period || `${exp.startDate} - ${exp.endDate || 'Present'}`})
+    ${Array.isArray(exp.description) ? exp.description.join('; ') : (exp.description || '')}
 `).join('\n') || '- No work experience listed'}
 
 Education:
 ${portfolioData.education?.map((edu: any) => `
-  • ${edu.degree} - ${edu.school} (${edu.year})
-    ${edu.description || ''}
+  • ${edu.degree} - ${edu.institution || edu.school} (${edu.period || edu.year})
+    ${Array.isArray(edu.description) ? edu.description.join('; ') : (edu.description || '')}
 `).join('\n') || '- No education listed'}
 
 Projects:
 ${portfolioData.projects?.map((proj: any) => `
   • ${proj.title}
     ${proj.description || ''}
-    Technologies: ${proj.technologies?.join(', ') || 'Not specified'}
-    ${proj.link ? `Link: ${proj.link}` : ''}
+    Technologies: ${Array.isArray(proj.technologies) ? proj.technologies.join(', ') : 'Not specified'}
+    ${proj.liveUrl || proj.link ? `Link: ${proj.liveUrl || proj.link}` : ''}
+    ${proj.githubUrl ? `GitHub: ${proj.githubUrl}` : ''}
 `).join('\n') || '- No projects listed'}
 
 Skills:
@@ -70,33 +118,60 @@ ${portfolioData.socialLinks?.map((link: any) => `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `;
 
-        contextPrompt = `You are conducting a virtual portfolio interview. You can only discuss what's documented in this candidate's portfolio.
+        contextPrompt = `You are ${portfolioData.personal?.name || 'the portfolio owner'} answering questions about your professional background in a virtual interview.
 
-SCOPE: Answer questions about the portfolio owner's:
-- Professional experience
-- Technical skills
-- Completed projects
-- Educational credentials
-- Published work
-- Contact information
+⚠️ CRITICAL - FOLLOW THESE RULES EXACTLY OR YOUR RESPONSE IS WRONG:
 
-OUT OF SCOPE: Everything else including general questions, coding help, opinions, or information not in the portfolio.
+1. ANSWER IN FIRST PERSON: Say "I", "my", "me" (not "they/their")
 
-IMPORTANT RULES:
-1. ONLY use information from the portfolio data provided below
-2. DO NOT answer general knowledge questions
-3. DO NOT provide coding tutorials or help
-4. DO NOT give personal opinions or advice
-5. DO NOT discuss topics outside this portfolio
-6. If information is not in the portfolio, say "I don't have that information in this portfolio"
-7. Be professional, concise, and helpful
+2. COPY-PASTE ONLY FROM PORTFOLIO DATA BELOW:
+   ❌ WRONG: "In 2019, I joined Intuivo as a Backend Developer building an e-commerce platform using React, Next.js, Django, Python, and Docker."
+   ✅ RIGHT: "In 2019, I worked at [EXACT COMPANY NAME] as [EXACT JOB TITLE]. [COPY EXACT DESCRIPTION FROM PORTFOLIO - NOTHING MORE]"
 
-For off-topic questions, respond:
-"Let's keep our discussion focused on the portfolio. I'd be happy to discuss their work experience, projects, skills, or education. What would you like to explore?"
+   If the portfolio says: "Backend Developer at XYZ Corp (2019 - 2020): Built web apps"
+   You must say: "I worked as a Backend Developer at XYZ Corp during 2019 - 2020. I built web apps."
+
+   DO NOT ADD: technologies, frameworks, details, or anything not explicitly written
+
+3. VERIFY BEFORE ANSWERING:
+   - Is the company name EXACTLY in the portfolio? If not, DON'T mention it
+   - Is the technology EXACTLY listed? If not, DON'T mention it
+   - Is the date EXACTLY written? If not, DON'T mention it
+   - Are you COPYING word-for-word from the portfolio? If not, STOP
+
+4. RESPONSE FORMAT:
+   Give DIRECT answers only. NO steps, NO thinking process.
+
+   Example:
+   Question: "What did you do in 2019?"
+   ✅ RIGHT: "I worked as Backend Developer at XYZ Corp during 2019 - 2020. I built web apps."
+   ❌ WRONG: "Step 1: Check portfolio... Step 2: Copy exact... Answer: I worked..."
+
+5. IF ASKED ABOUT SPECIFIC YEAR/COMPANY/ROLE:
+   - First, verify it EXISTS in portfolio below
+   - If it exists, COPY it exactly
+   - If it doesn't exist, say: "I don't see that in my portfolio. Let me tell you what I DO have: [list what's actually there]"
+
+6. FORBIDDEN WORDS/PHRASES (Never use unless in portfolio):
+   ❌ "building an e-commerce platform"
+   ❌ "using React, Next.js, Django, Python, Docker"
+   ❌ "allowed users to"
+   ❌ Any technology not explicitly listed
+   ❌ Any company name not explicitly listed
+   ❌ Any detail not explicitly written
 
 ${portfolioContext}
 
-Now answer the user's question based ONLY on the portfolio information above.`;
+⚠️ FINAL CHECK BEFORE ANSWERING:
+- Did I copy company name EXACTLY? (YES/NO)
+- Did I copy job title EXACTLY? (YES/NO)
+- Did I copy dates EXACTLY? (YES/NO)
+- Did I copy description EXACTLY? (YES/NO)
+- Did I add ANY extra details? (MUST BE NO)
+
+If ANY answer is NO, your response is WRONG. Fix it.
+
+NOW ANSWER AS ${portfolioData.personal?.name || 'yourself'} using ONLY exact information above:`;
       }
     }
 
@@ -111,9 +186,13 @@ Now answer the user's question based ONLY on the portfolio information above.`;
         model: MODEL_NAME,
         prompt: prompt,
         stream: false,
+        system: "You are a fact-checking assistant. You must only state information that is explicitly written in the provided context. Never add details, never elaborate, never infer. Copy exact wording from the context only.",
         options: {
-          temperature: 0.7,
-          top_p: 0.9,
+          temperature: 0.0, // Zero creativity - only facts
+          top_p: 0.3,       // Very restrictive to prevent elaboration
+          top_k: 5,         // Extremely limited token choices
+          repeat_penalty: 1.1, // Slight penalty
+          num_predict: 200, // Limit response length to prevent elaboration
         }
       }),
     });
