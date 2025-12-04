@@ -3,6 +3,7 @@ import{BriefcaseBusiness, GraduationCap,Code,MonitorCog,Eye, Pencil,Bot} from "l
 
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
+  import { generatePortfolioPDF } from '$lib/pdfGenerator';
 
   export let user: any;
 
@@ -52,14 +53,13 @@ import{BriefcaseBusiness, GraduationCap,Code,MonitorCog,Eye, Pencil,Bot} from "l
     }
   }
 
-  async function downloadPDF() {
-    // For now, we'll open the portfolio in a new window and let the user print to PDF
-    // In a production app, you'd use a library like jsPDF or html2pdf
-    const url = `${window.location.origin}/${user.username}`;
-    window.open(url, '_blank');
+  function downloadPDF() {
+    // Store that user wants to download PDF
+    sessionStorage.setItem('generatePDF', 'true');
+    sessionStorage.setItem('pdfUsername', user.username);
 
-    // Show instructions
-    alert('To download as PDF:\n1. Click Print (Ctrl/Cmd+P)\n2. Select "Save as PDF" as the destination\n3. Click Save\n\nFuture versions will have direct PDF export!');
+    // Navigate to the portfolio page where PDF will be generated
+    goto(`/${user.username}`);
   }
 
   function viewPublicPortfolio() {

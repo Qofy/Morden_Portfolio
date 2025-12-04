@@ -3,6 +3,7 @@
   import { page } from '$app/stores';
   import { portfolioData } from '$lib/data';
   import { portfolioStore } from '$lib/stores';
+  import { generatePortfolioPDF } from '$lib/pdfGenerator';
 
   import Header from '$lib/component/Header.svelte';
   import Hero from '$lib/component/Hero.svelte';
@@ -34,6 +35,56 @@
     }
 
     loading = false;
+
+    // Check if PDF generation was requested
+    const shouldGeneratePDF = sessionStorage.getItem('generatePDF');
+    const pdfUsername = sessionStorage.getItem('pdfUsername');
+
+    if (shouldGeneratePDF === 'true' && pdfUsername === username) {
+      // Clear the flags
+      sessionStorage.removeItem('generatePDF');
+      sessionStorage.removeItem('pdfUsername');
+
+      // Show loading message
+      const loadingMsg = document.createElement('div');
+      loadingMsg.id = 'pdf-loading';
+      loadingMsg.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 30px 50px;
+        border-radius: 12px;
+        z-index: 10000;
+        font-size: 18px;
+        text-align: center;
+      `;
+      loadingMsg.innerHTML = `
+        <div style="margin-bottom: 10px;">Generating PDF...</div>
+        <div style="font-size: 14px; opacity: 0.7;">Please wait a moment</div>
+      `;
+      document.body.appendChild(loadingMsg);
+
+      // Wait for all content to render, including images
+      setTimeout(async () => {
+        try {
+          await generatePortfolioPDF(username);
+          // Success message
+          loadingMsg.innerHTML = `
+            <div style="color: #4ade80;">✓ PDF Generated Successfully!</div>
+          `;
+          setTimeout(() => {
+            document.body.removeChild(loadingMsg);
+          }, 1000);
+        } catch (error) {
+          console.error('PDF generation failed:', error);
+          document.body.removeChild(loadingMsg);
+          alert('Failed to generate PDF. Please try using Print (Ctrl/Cmd+P) instead.');
+        }
+      }, 2500);
+    }
   });
 </script>
 

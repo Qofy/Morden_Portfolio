@@ -73,6 +73,8 @@
   },
   "dependencies": {
     "entities": "^6.0.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.4",
     "lucide-svelte": "^0.554.0",
     "rollup": "^4.42.0"
   },
