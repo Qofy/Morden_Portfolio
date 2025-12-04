@@ -96,7 +96,7 @@
     <div class="chat-header">
       <div class="header-content">
         <ChevronDown size={20} />
-        <h3>Chat with Kofi Support</h3>
+        <h3>Portfolio Assistant</h3>
       </div>
       <button class="close-btn" on:click={() => chatStore.closeChat()}>
         <X size={20} />
@@ -106,13 +106,18 @@
     <div class="chat-messages" bind:this={chatContainer} on:scroll={handleScroll}>
       {#if $chatStore.messages.length === 0}
         <div class="welcome-message">
-          <p>👋 Hi! I'm an AI assistant that knows all about Kofi's experience and skills.</p>
-          <p>Ask me anything like:</p>
+          <p>👋 Hi! I'm conducting a virtual portfolio interview.</p>
+          <p>I can only answer questions about this portfolio owner's professional information:</p>
           <ul>
-            <li>"What is Kofi's experience?"</li>
-            <li>"What technologies does Kofi know?"</li>
-            <li>"Tell me about Kofi's projects"</li>
+            <li>"What is their work experience?"</li>
+            <li>"What technologies and skills do they have?"</li>
+            <li>"Tell me about their projects"</li>
+            <li>"What is their educational background?"</li>
+            <li>"Do they have any blog posts?"</li>
           </ul>
+          <p style="font-size: 0.85rem; opacity: 0.8; margin-top: 1rem;">
+            Note: I can only discuss information in this portfolio. I cannot answer general questions or provide coding help.
+          </p>
         </div>
       {/if}
 
@@ -139,7 +144,7 @@
         type="text"
         bind:value={messageInput}
         on:keypress={handleKeyPress}
-        placeholder="Ask about Kofi's experience..."
+        placeholder="Ask about their experience, skills, or projects..."
         disabled={$chatStore.isLoading}
       />
       <button

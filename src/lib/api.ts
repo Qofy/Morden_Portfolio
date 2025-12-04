@@ -20,15 +20,83 @@ export async function sendMessageToOllama(userMessage: string, portfolioData?: a
       if (portfolioData.systemPrompt) {
         contextPrompt = portfolioData.systemPrompt;
       } else {
-        // Default portfolio assistant prompt
-        contextPrompt = `You are an AI assistant representing ${portfolioData.personal?.name || 'the portfolio owner'}.
-Here is information about them:
-- Name: ${portfolioData.personal?.name}
-- Title: ${portfolioData.personal?.title}
-- Location: ${portfolioData.personal?.location}
-- Bio: ${portfolioData.personal?.bio}
+        // Interview-Style Guard: Strict portfolio-only assistant
+        const portfolioContext = `
+PORTFOLIO INFORMATION:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Personal Information:
+- Name: ${portfolioData.personal?.name || 'Not specified'}
+- Title: ${portfolioData.personal?.title || 'Not specified'}
+- Location: ${portfolioData.personal?.location || 'Not specified'}
+- Email: ${portfolioData.personal?.email || 'Not specified'}
+- Bio: ${portfolioData.personal?.bio || 'Not specified'}
 
-Answer questions about their experience, skills, and projects based on this information. Be helpful, professional, and concise.`;
+Work Experience:
+${portfolioData.workExperience?.map((exp: any) => `
+  • ${exp.title} at ${exp.company} (${exp.startDate} - ${exp.endDate || 'Present'})
+    ${exp.description || ''}
+`).join('\n') || '- No work experience listed'}
+
+Education:
+${portfolioData.education?.map((edu: any) => `
+  • ${edu.degree} - ${edu.school} (${edu.year})
+    ${edu.description || ''}
+`).join('\n') || '- No education listed'}
+
+Projects:
+${portfolioData.projects?.map((proj: any) => `
+  • ${proj.title}
+    ${proj.description || ''}
+    Technologies: ${proj.technologies?.join(', ') || 'Not specified'}
+    ${proj.link ? `Link: ${proj.link}` : ''}
+`).join('\n') || '- No projects listed'}
+
+Skills:
+${Object.entries(portfolioData.skills || {}).map(([category, skills]: [string, any]) => `
+  ${category}: ${Array.isArray(skills) ? skills.join(', ') : 'None'}
+`).join('\n') || '- No skills listed'}
+
+Blog Posts:
+${portfolioData.blogPosts?.map((post: any) => `
+  • ${post.title}
+    ${post.excerpt || ''}
+    Tags: ${post.tags?.join(', ') || 'None'}
+`).join('\n') || '- No blog posts available'}
+
+Social Links:
+${portfolioData.socialLinks?.map((link: any) => `
+  • ${link.name}: ${link.url}
+`).join('\n') || '- No social links listed'}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+`;
+
+        contextPrompt = `You are conducting a virtual portfolio interview. You can only discuss what's documented in this candidate's portfolio.
+
+SCOPE: Answer questions about the portfolio owner's:
+- Professional experience
+- Technical skills
+- Completed projects
+- Educational credentials
+- Published work
+- Contact information
+
+OUT OF SCOPE: Everything else including general questions, coding help, opinions, or information not in the portfolio.
+
+IMPORTANT RULES:
+1. ONLY use information from the portfolio data provided below
+2. DO NOT answer general knowledge questions
+3. DO NOT provide coding tutorials or help
+4. DO NOT give personal opinions or advice
+5. DO NOT discuss topics outside this portfolio
+6. If information is not in the portfolio, say "I don't have that information in this portfolio"
+7. Be professional, concise, and helpful
+
+For off-topic questions, respond:
+"Let's keep our discussion focused on the portfolio. I'd be happy to discuss their work experience, projects, skills, or education. What would you like to explore?"
+
+${portfolioContext}
+
+Now answer the user's question based ONLY on the portfolio information above.`;
       }
     }
 
