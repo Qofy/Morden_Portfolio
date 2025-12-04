@@ -8,6 +8,8 @@ import "@sveltejs/kit/internal/server";
 import "../../../chunks/state.svelte.js";
 import { a as authStore } from "../../../chunks/stores.js";
 import { a as attr } from "../../../chunks/attributes.js";
+import "html2canvas";
+import "jspdf";
 function DashboardOverview($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
     let user = $$props["user"];

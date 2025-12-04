@@ -1,7 +1,18 @@
 {
-	"/": [],
-	"/dashboard": [],
-	"/login": [],
-	"/register": [],
-	"/[username]": []
+	"/": [
+		"src/routes/+layout.ts",
+		"src/routes/+layout.ts"
+	],
+	"/dashboard": [
+		"src/routes/+layout.ts"
+	],
+	"/login": [
+		"src/routes/+layout.ts"
+	],
+	"/register": [
+		"src/routes/+layout.ts"
+	],
+	"/[username]": [
+		"src/routes/+layout.ts"
+	]
 }

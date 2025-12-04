@@ -5,6 +5,8 @@ import "../../../chunks/utils.js";
 import "@sveltejs/kit/internal/server";
 import "../../../chunks/state.svelte.js";
 import { p as portfolioStore } from "../../../chunks/stores.js";
+import "html2canvas";
+import "jspdf";
 /* empty css                                                   */
 function _page($$renderer, $$props) {
   $$renderer.component(($$renderer2) => {
