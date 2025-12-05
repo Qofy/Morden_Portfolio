@@ -123,6 +123,7 @@
     workExperience = workExperience.filter((_, i) => i !== index);
   }
 
+
   function addEducation() {
     education = [...education, {
       period: '',
@@ -151,6 +152,7 @@
   function removeProject(index: number) {
     projects = projects.filter((_, i) => i !== index);
   }
+
 
   function addSocialLink() {
     socialLinks = [...socialLinks, { name: '', icon: '', url: '' }];
@@ -210,6 +212,16 @@
       delete skills[category];
       skills = { ...skills }; // Trigger reactivity
     }
+  }
+
+
+  function getSkillName(skill: string): string {
+    return skill.match(/^(.+?):\s*\d+%?$/)?.[1]?.trim() || skill;
+  }
+
+  function getSkillProficiency(skill: string): number {
+    const match = skill.match(/^.+?:\s*(\d+)%?$/);
+    return match ? parseInt(match[1], 10) : 0;
   }
 
   function arrayToString(arr: string[]): string {
@@ -402,13 +414,32 @@
                 >{Array.isArray(work.description) ? arrayToString(work.description) : work.description}</textarea>
               </div>
               <div class="form-group full-width">
-                <label>Technologies/Tags (comma-separated)</label>
+                <label>Technologies/Tags (comma-separated, optionally with proficiency)</label>
                 <input
                   type="text"
                   value={Array.isArray(work.tags) ? arrayToString(work.tags) : work.tags || ''}
                   on:input={(e) => (work.tags = stringToArray(e.currentTarget.value))}
-                  placeholder="React, Node.js, AWS, Docker"
+                  placeholder="React: 90%, Node.js: 85%, AWS, Docker: 75%"
                 />
+                <small style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">
+                  Format: "Tech: percentage%" or just "Tech". Example: "React: 90%, Node.js, AWS: 80%"
+                </small>
+
+                {#if work.tags && work.tags.length > 0}
+                  <div class="proficiency-trackers">
+                    {#each work.tags as tag, tagIndex}
+                      <div class="tracker-item">
+                        <div class="tracker-header">
+                          <span class="tracker-name">{getSkillName(tag)}</span>
+                          <span class="tracker-percentage">{getSkillProficiency(tag) || 0}%</span>
+                        </div>
+                        <div class="proficiency-bar">
+                          <div class="proficiency-fill" style="width: {getSkillProficiency(tag) || 0}%"></div>
+                        </div>
+                      </div>
+                    {/each}
+                  </div>
+                {/if}
               </div>
             </div>
             <button class="btn-remove" on:click={() => removeWorkExperience(i)}>Remove</button>
@@ -477,13 +508,32 @@
                 <textarea bind:value={project.description} placeholder="Describe your project" rows="3"></textarea>
               </div>
               <div class="form-group full-width">
-                <label>Technologies (comma-separated)</label>
+                <label>Technologies (comma-separated, optionally with proficiency)</label>
                 <input
                   type="text"
                   value={Array.isArray(project.technologies) ? arrayToString(project.technologies) : project.technologies || ''}
                   on:input={(e) => (project.technologies = stringToArray(e.currentTarget.value))}
-                  placeholder="React, Node.js, MongoDB"
+                  placeholder="React: 90%, Node.js: 85%, MongoDB"
                 />
+                <small style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">
+                  Format: "Tech: percentage%" or just "Tech". Example: "React: 90%, Node.js, MongoDB: 80%"
+                </small>
+
+                {#if project.technologies && project.technologies.length > 0}
+                  <div class="proficiency-trackers">
+                    {#each project.technologies as tech, techIndex}
+                      <div class="tracker-item">
+                        <div class="tracker-header">
+                          <span class="tracker-name">{getSkillName(tech)}</span>
+                          <span class="tracker-percentage">{getSkillProficiency(tech) || 0}%</span>
+                        </div>
+                        <div class="proficiency-bar">
+                          <div class="proficiency-fill" style="width: {getSkillProficiency(tech) || 0}%"></div>
+                        </div>
+                      </div>
+                    {/each}
+                  </div>
+                {/if}
               </div>
               <div class="form-group">
                 <label>Project Image (Upload or Base64)</label>
@@ -522,7 +572,7 @@
                 <button class="btn-remove-small" on:click={() => removeSkillCategory(category)}>Remove Category</button>
               </div>
               <div class="form-group full-width">
-                <label>Skills (comma-separated)</label>
+                <label>Skills (comma-separated, optionally with proficiency)</label>
                 <input
                   type="text"
                   value={arrayToString(skills[category])}
@@ -530,9 +580,28 @@
                     skills[category] = stringToArray(e.currentTarget.value);
                     skills = { ...skills };
                   }}
-                  placeholder="Enter skills separated by commas"
+                  placeholder="Python: 90%, JavaScript: 85%, React, Docker: 75%"
                 />
+                <small style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">
+                  Format: "Skill: percentage%" or just "Skill". Example: "Python: 90%, JavaScript, React: 85%"
+                </small>
               </div>
+
+              {#if skills[category].length > 0}
+                <div class="proficiency-trackers">
+                  {#each skills[category] as skill, skillIndex}
+                    <div class="tracker-item">
+                      <div class="tracker-header">
+                        <span class="tracker-name">{getSkillName(skill)}</span>
+                        <span class="tracker-percentage">{getSkillProficiency(skill) || 0}%</span>
+                      </div>
+                      <div class="proficiency-bar">
+                        <div class="proficiency-fill" style="width: {getSkillProficiency(skill) || 0}%"></div>
+                      </div>
+                    </div>
+                  {/each}
+                </div>
+              {/if}
             </div>
           {/each}
         {/if}
@@ -823,6 +892,82 @@
     background: var(--bg-secondary);
     border-radius: 8px;
     border: 2px dashed rgba(255, 255, 255, 0.1);
+  }
+
+  .empty-message-small {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 14px;
+  }
+
+  .proficiency-trackers {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 16px;
+    background: rgba(255, 155, 255, 0.02);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+  }
+
+  .tracker-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .tracker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .tracker-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 14px;
+  }
+
+  .tracker-percentage {
+    font-weight: 600;
+    color: #fff;
+    font-size: 13px;
+  }
+
+  .proficiency-bar {
+    width: 100%;
+    height: 8px;
+    background: #fff;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .proficiency-fill {
+    height: 100%;
+    background: var(--text-secondary);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    position: relative;
+  }
+
+  .proficiency-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
   }
 
   .editor-footer {
