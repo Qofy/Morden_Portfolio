@@ -3,7 +3,7 @@ import { systemPrompt } from './data';
 const OLLAMA_API_URL = 'http://localhost:11434/api/generate';
 const OLLAMA_TAGS_URL = 'http://localhost:11434/api/tags';
 
-// Recommended models (in order of preference):
+// For faster reposonse and actions
 // - llama3.2:3b (best balance of speed and accuracy)
 // - mistral:7b (very accurate, slower)
 // - phi3:3.8b (good balance)
@@ -54,6 +54,42 @@ async function getAvailableModel(): Promise<string> {
   }
 }
 
+/**
+ * Generate Q&A preparation based on portfolio data
+ */
+function generateQAPreparation(portfolioData: any): string {
+  const qaList: string[] = [];
+
+  // Generate Q&A for work experience
+  portfolioData.workExperience?.forEach((exp: any) => {
+    const period = exp.period || `${exp.startDate} - ${exp.endDate || 'Present'}`;
+    const position = exp.position || exp.title;
+    const company = exp.company;
+
+    qaList.push(`Q: What did you do at ${company}?`);
+    qaList.push(`A: I worked as ${position} at ${company} from ${period}.`);
+
+    qaList.push(`Q: Tell me about your experience at ${company}`);
+    qaList.push(`A: I was ${position} at ${company} during ${period}. ${Array.isArray(exp.description) ? exp.description.join(' ') : exp.description || ''}`);
+  });
+
+  // Generate Q&A for skills
+  Object.entries(portfolioData.skills || {}).forEach(([category, skills]: [string, any]) => {
+    if (Array.isArray(skills) && skills.length > 0) {
+      qaList.push(`Q: What ${category} skills do you have?`);
+      qaList.push(`A: My ${category} skills include: ${skills.join(', ')}.`);
+    }
+  });
+
+  // Generate Q&A for education
+  portfolioData.education?.forEach((edu: any) => {
+    qaList.push(`Q: What is your educational background?`);
+    qaList.push(`A: I have ${edu.degree} from ${edu.institution || edu.school}, completed in ${edu.period || edu.year}.`);
+  });
+
+  return qaList.join('\n');
+}
+
 export async function sendMessageToOllama(userMessage: string, portfolioData?: any): Promise<string> {
   try {
     // Auto-detect best available Ollama model
@@ -67,54 +103,92 @@ export async function sendMessageToOllama(userMessage: string, portfolioData?: a
       if (portfolioData.systemPrompt) {
         contextPrompt = portfolioData.systemPrompt;
       } else {
+        // Parse work experience with better labels
+        const workExpFormatted = portfolioData.workExperience?.map((exp: any, index: number) => {
+          const periodParts = (exp.period || '').split('-').map((p: string) => p.trim());
+          const yearStart = periodParts[0] || 'Not specified';
+          const yearEnd = periodParts[1] || 'Present';
+
+          return `
+[WORK EXPERIENCE #${index + 1}]
+  POSITION: ${exp.position || exp.title || 'Not specified'}
+  COMPANY: ${exp.company || 'Not specified'}
+  LOCATION: ${exp.location || 'Not specified'}
+  YEAR_STARTS: ${yearStart}
+  YEAR_ENDS: ${yearEnd}
+  PERIOD: ${exp.period || 'Not specified'}
+  RESPONSIBILITIES: ${Array.isArray(exp.description) ? exp.description.map((d: string, i: number) => `\n    ${i + 1}. ${d}`).join('') : (exp.description || 'Not specified')}
+  TECHNOLOGIES: ${Array.isArray(exp.tags) ? exp.tags.join(', ') : 'Not specified'}`;
+        }).join('\n') || 'No work experience listed';
+
+        // Parse education with better labels
+        const educationFormatted = portfolioData.education?.map((edu: any, index: number) => {
+          const periodParts = (edu.period || '').split('-').map((p: string) => p.trim());
+          const yearStart = periodParts[0] || 'Not specified';
+          const yearEnd = periodParts[1] || 'Present';
+
+          return `
+[EDUCATION #${index + 1}]
+  DEGREE: ${edu.degree || 'Not specified'}
+  INSTITUTION: ${edu.institution || edu.school || 'Not specified'}
+  LOCATION: ${edu.location || 'Not specified'}
+  YEAR_STARTS: ${yearStart}
+  YEAR_ENDS: ${yearEnd}
+  PERIOD: ${edu.period || edu.year || 'Not specified'}
+  DETAILS: ${Array.isArray(edu.description) ? edu.description.map((d: string, i: number) => `\n    ${i + 1}. ${d}`).join('') : (edu.description || 'Not specified')}`;
+        }).join('\n') || 'No education listed';
+
+        // Parse projects with better labels
+        const projectsFormatted = portfolioData.projects?.map((proj: any, index: number) => {
+          return `
+[PROJECT #${index + 1}]
+  PROJECT_NAME: ${proj.title || 'Not specified'}
+  DESCRIPTION: ${proj.description || 'Not specified'}
+  TECHNOLOGIES_USED: ${Array.isArray(proj.technologies) ? proj.technologies.join(', ') : 'Not specified'}
+  LIVE_URL: ${proj.liveUrl || proj.link || 'Not available'}
+  GITHUB_URL: ${proj.githubUrl || 'Not available'}`;
+        }).join('\n') || 'No projects listed';
+
+        // Parse skills with better labels
+        const skillsFormatted = Object.entries(portfolioData.skills || {}).map(([category, skills]: [string, any]) => {
+          return `[SKILL_CATEGORY: ${category}]\n  SKILLS: ${Array.isArray(skills) ? skills.join(', ') : 'None'}`;
+        }).join('\n') || 'No skills listed';
+
+        // Generate Q&A preparation
+        const qaPreparation = generateQAPreparation(portfolioData);
+
         // Interview-Style Guard: Strict portfolio-only assistant
         const portfolioContext = `
-PORTFOLIO INFORMATION:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Personal Information:
-- Name: ${portfolioData.personal?.name || 'Not specified'}
-- Title: ${portfolioData.personal?.title || 'Not specified'}
-- Location: ${portfolioData.personal?.location || 'Not specified'}
-- Email: ${portfolioData.personal?.email || 'Not specified'}
-- Bio: ${portfolioData.personal?.bio || 'Not specified'}
+PORTFOLIO DATABASE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Work Experience:
-${portfolioData.workExperience?.map((exp: any) => `
-  • ${exp.position || exp.title} at ${exp.company} (${exp.period || `${exp.startDate} - ${exp.endDate || 'Present'}`})
-    ${Array.isArray(exp.description) ? exp.description.join('; ') : (exp.description || '')}
-`).join('\n') || '- No work experience listed'}
+[PERSONAL_INFORMATION]
+  FULL_NAME: ${portfolioData.personal?.name || 'Not specified'}
+  PROFESSIONAL_TITLE: ${portfolioData.personal?.title || 'Not specified'}
+  LOCATION: ${portfolioData.personal?.location || 'Not specified'}
+  EMAIL: ${portfolioData.personal?.email || 'Not specified'}
+  BIO: ${portfolioData.personal?.bio || 'Not specified'}
 
-Education:
-${portfolioData.education?.map((edu: any) => `
-  • ${edu.degree} - ${edu.institution || edu.school} (${edu.period || edu.year})
-    ${Array.isArray(edu.description) ? edu.description.join('; ') : (edu.description || '')}
-`).join('\n') || '- No education listed'}
+[WORK_EXPERIENCE_SECTION]
+${workExpFormatted}
 
-Projects:
-${portfolioData.projects?.map((proj: any) => `
-  • ${proj.title}
-    ${proj.description || ''}
-    Technologies: ${Array.isArray(proj.technologies) ? proj.technologies.join(', ') : 'Not specified'}
-    ${proj.liveUrl || proj.link ? `Link: ${proj.liveUrl || proj.link}` : ''}
-    ${proj.githubUrl ? `GitHub: ${proj.githubUrl}` : ''}
-`).join('\n') || '- No projects listed'}
+[EDUCATION_SECTION]
+${educationFormatted}
 
-Skills:
-${Object.entries(portfolioData.skills || {}).map(([category, skills]: [string, any]) => `
-  ${category}: ${Array.isArray(skills) ? skills.join(', ') : 'None'}
-`).join('\n') || '- No skills listed'}
+[PROJECTS_SECTION]
+${projectsFormatted}
 
-Blog Posts:
-${portfolioData.blogPosts?.map((post: any) => `
-  • ${post.title}
-    ${post.excerpt || ''}
-    Tags: ${post.tags?.join(', ') || 'None'}
-`).join('\n') || '- No blog posts available'}
+[SKILLS_SECTION]
+${skillsFormatted}
 
-Social Links:
-${portfolioData.socialLinks?.map((link: any) => `
-  • ${link.name}: ${link.url}
-`).join('\n') || '- No social links listed'}
+[SOCIAL_LINKS]
+${portfolioData.socialLinks?.map((link: any) => `  ${link.name}: ${link.url}`).join('\n') || 'No social links'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+QUESTION & ANSWER PREPARATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${qaPreparation}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `;
 
@@ -177,6 +251,16 @@ NOW ANSWER AS ${portfolioData.personal?.name || 'yourself'} using ONLY exact inf
 
     const prompt = `${contextPrompt}\n\nUser: ${userMessage}\n\nAssistant:`;
 
+    // 🔍 DEBUG: Log the full prompt being sent to Ollama
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🤖 OLLAMA PROMPT DEBUG');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('USER QUESTION:', userMessage);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('FULL PROMPT SENT TO OLLAMA:');
+    console.log(prompt);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
     const response = await fetch(OLLAMA_API_URL, {
       method: 'POST',
       headers: {
@@ -202,6 +286,13 @@ NOW ANSWER AS ${portfolioData.personal?.name || 'yourself'} using ONLY exact inf
     }
 
     const data: OllamaResponse = await response.json();
+
+    // 🔍 DEBUG: Log the response from Ollama
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('✅ OLLAMA RESPONSE:');
+    console.log(data.response);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
     return data.response;
   } catch (error) {
     console.error('Error communicating with Ollama:', error);
