@@ -36,11 +36,14 @@
 
   :global(:root.light) {
     --bg-primary: #ffffff;
-    --bg-secondary: #f7f9f9;
+    --bg-secondary: #060606;
     --bg-hover: #eff3f4;
+    --text-primary: #0f1419;
     --text-primary-2: #0f1419;
-    --text-secondary: #536471;
+    --text-secondary: #0e0e0e;
     --border-color: #eff3f4;
+    --border-color-2: #2f3336;
+    --c-border-secondary: #536471;
   }
 
   :global(main) {
