@@ -17,6 +17,52 @@ export interface OllamaResponse {
   done: boolean;
 }
 
+interface WorkExperience {
+  period?: string;
+  position?: string;
+  title?: string;
+  company?: string;
+  description?: string | string[];
+  tags?: string[];
+  startDate?: string;
+  endDate?: string;
+}
+
+interface ParsedWorkExperience extends WorkExperience {
+  startParsed: { year: number; month?: number } | null;
+  endParsed: { year: number; month?: number } | null;
+}
+
+interface Project {
+  title?: string;
+  description?: string;
+  technologies?: string[];
+}
+
+interface Education {
+  period?: string;
+  degree?: string;
+  institution?: string;
+  location?: string;
+  description?: string | string[];
+}
+
+interface Personal {
+  name?: string;
+  title?: string;
+  location?: string;
+  bio?: string;
+  email?: string;
+}
+
+interface PortfolioData {
+  workExperience?: WorkExperience[];
+  skills?: Record<string, string[]>;
+  projects?: Project[];
+  education?: Education[];
+  personal?: Personal;
+}
+
 /**
  * Auto-detect the best available Ollama model
  */
@@ -55,37 +101,191 @@ async function getAvailableModel(): Promise<string> {
 }
 
 /**
- * Generate Q&A preparation based on portfolio data
+ * Parse date from period string (e.g., "2019 - 2023" or "Jan 2019 - Mar 2023")
  */
-function generateQAPreparation(portfolioData: any): string {
+function parseDate(dateStr: string): { year: number; month?: number } | null {
+  if (!dateStr || dateStr.toLowerCase() === 'present') return null;
+
+  const yearMatch = dateStr.match(/(\d{4})/);
+  const year = yearMatch ? parseInt(yearMatch[1], 10) : null;
+
+  if (!year) return null;
+
+  // Try to extract month if present
+  const months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
+  const monthMatch = dateStr.toLowerCase().match(new RegExp(`(${months.join('|')})`));
+  const month = monthMatch ? months.indexOf(monthMatch[1]) + 1 : undefined;
+
+  return { year, month };
+}
+
+/**
+ * Detect gaps in work experience timeline
+ */
+function detectWorkGaps(workExperience: WorkExperience[]): string[] {
+  const gaps: string[] = [];
+
+  if (!workExperience || workExperience.length < 2) return gaps;
+
+  // Sort by end date descending (most recent first)
+  const sorted = [...workExperience]
+    .map((exp: WorkExperience): ParsedWorkExperience => {
+      const periodParts = (exp.period || '').split('-').map((p: string) => p.trim());
+      const start = parseDate(periodParts[0]);
+      const end = parseDate(periodParts[1]) || { year: new Date().getFullYear() }; // Assume present if no end
+      return { ...exp, startParsed: start, endParsed: end };
+    })
+    .filter((exp): exp is ParsedWorkExperience & {
+      startParsed: NonNullable<ParsedWorkExperience['startParsed']>;
+      endParsed: NonNullable<ParsedWorkExperience['endParsed']>
+    } => exp.startParsed !== null && exp.endParsed !== null)
+    .sort((a, b) => (b.endParsed?.year || 0) - (a.endParsed?.year || 0));
+
+  // Check for gaps between consecutive jobs
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const currentStart = sorted[i].startParsed;
+    const previousEnd = sorted[i + 1].endParsed;
+
+    if (currentStart && previousEnd) {
+      const yearGap = currentStart.year - previousEnd.year;
+
+      if (yearGap > 1) {
+        gaps.push(`EMPLOYMENT_GAP_DETECTED: ${previousEnd.year} to ${currentStart.year} (${yearGap} years)`);
+      } else if (yearGap === 1 && currentStart.month && previousEnd.month) {
+        const monthGap = (currentStart.year - previousEnd.year) * 12 + (currentStart.month - previousEnd.month);
+        if (monthGap > 3) { // Gap > 3 months
+          gaps.push(`EMPLOYMENT_GAP_DETECTED: ${previousEnd.year} to ${currentStart.year} (${monthGap} months)`);
+        }
+      }
+    }
+  }
+
+  return gaps;
+}
+
+/**
+ * Generate Q&A preparation based on portfolio data with leading answers
+ */
+function generateQAPreparation(portfolioData: PortfolioData): string {
   const qaList: string[] = [];
 
+  // Detect employment gaps
+  const gaps = detectWorkGaps(portfolioData.workExperience || []);
+
+  qaList.push('═══════════════════════════════════════════════════');
+  qaList.push('BASIC QUESTIONS & ANSWERS');
+  qaList.push('═══════════════════════════════════════════════════\n');
+
   // Generate Q&A for work experience
-  portfolioData.workExperience?.forEach((exp: any) => {
+  portfolioData.workExperience?.forEach((exp: WorkExperience) => {
     const period = exp.period || `${exp.startDate} - ${exp.endDate || 'Present'}`;
     const position = exp.position || exp.title;
     const company = exp.company;
+    const description = Array.isArray(exp.description) ? exp.description.join(' ') : exp.description || '';
 
     qaList.push(`Q: What did you do at ${company}?`);
     qaList.push(`A: I worked as ${position} at ${company} from ${period}.`);
+    qaList.push('');
 
     qaList.push(`Q: Tell me about your experience at ${company}`);
-    qaList.push(`A: I was ${position} at ${company} during ${period}. ${Array.isArray(exp.description) ? exp.description.join(' ') : exp.description || ''}`);
+    qaList.push(`A: I was ${position} at ${company} during ${period}. ${description}`);
+    qaList.push('');
+
+    qaList.push(`Q: What were your responsibilities at ${company}?`);
+    qaList.push(`A: As ${position} at ${company}, ${description}`);
+    qaList.push('');
+
+    if (exp.tags && Array.isArray(exp.tags) && exp.tags.length > 0) {
+      qaList.push(`Q: What technologies did you use at ${company}?`);
+      qaList.push(`A: At ${company}, I worked with ${exp.tags.join(', ')}.`);
+      qaList.push('');
+    }
   });
 
-  // Generate Q&A for skills
-  Object.entries(portfolioData.skills || {}).forEach(([category, skills]: [string, any]) => {
+  // Generate Q&A for skills with leading answers
+  qaList.push('═══════════════════════════════════════════════════');
+  qaList.push('SKILLS-RELATED QUESTIONS & ANSWERS');
+  qaList.push('═══════════════════════════════════════════════════\n');
+
+  Object.entries(portfolioData.skills || {}).forEach(([category, skills]: [string, string[]]) => {
     if (Array.isArray(skills) && skills.length > 0) {
       qaList.push(`Q: What ${category} skills do you have?`);
       qaList.push(`A: My ${category} skills include: ${skills.join(', ')}.`);
+      qaList.push('');
+
+      qaList.push(`Q: Are you proficient in ${category}?`);
+      qaList.push(`A: Yes, I have experience with ${skills.join(', ')}.`);
+      qaList.push('');
+
+      // Leading answer - guides conversation
+      qaList.push(`Q: Tell me about your ${category} experience`);
+      qaList.push(`A: I've worked extensively with ${skills.slice(0, 3).join(', ')}. Would you like me to elaborate on any specific technology?`);
+      qaList.push('');
     }
   });
 
   // Generate Q&A for education
-  portfolioData.education?.forEach((edu: any) => {
+  qaList.push('═══════════════════════════════════════════════════');
+  qaList.push('EDUCATION QUESTIONS & ANSWERS');
+  qaList.push('═══════════════════════════════════════════════════\n');
+
+  portfolioData.education?.forEach((edu: Education) => {
     qaList.push(`Q: What is your educational background?`);
-    qaList.push(`A: I have ${edu.degree} from ${edu.institution || edu.school}, completed in ${edu.period || edu.year}.`);
+    qaList.push(`A: I have ${edu.degree} from ${edu.institution}, completed in ${edu.period}.`);
+    qaList.push('');
+
+    qaList.push(`Q: Where did you study?`);
+    qaList.push(`A: I studied at ${edu.institution}, where I earned my ${edu.degree}.`);
+    qaList.push('');
   });
+
+  // Leading questions about career progression
+  qaList.push('═══════════════════════════════════════════════════');
+  qaList.push('CAREER PROGRESSION QUESTIONS (LEADING ANSWERS)');
+  qaList.push('═══════════════════════════════════════════════════\n');
+
+  if (portfolioData.workExperience && portfolioData.workExperience.length > 0) {
+    const mostRecent = portfolioData.workExperience[0];
+    qaList.push(`Q: What is your current role?`);
+    qaList.push(`A: I'm currently working as ${mostRecent.position || mostRecent.title} at ${mostRecent.company}.`);
+    qaList.push('');
+
+    qaList.push(`Q: What are you looking for in your next role?`);
+    qaList.push(`A: LEADING ANSWER: Based on my experience as ${mostRecent.position || mostRecent.title}, I'm interested in opportunities that allow me to further develop my skills in ${Object.keys(portfolioData.skills || {}).slice(0, 2).join(' and ')}.`);
+    qaList.push('');
+  }
+
+  // Gap explanations if detected
+  if (gaps.length > 0) {
+    qaList.push('═══════════════════════════════════════════════════');
+    qaList.push('EMPLOYMENT GAPS DETECTED - PREPARE EXPLANATIONS');
+    qaList.push('═══════════════════════════════════════════════════\n');
+
+    gaps.forEach(gap => {
+      qaList.push(`⚠️  ${gap}`);
+    });
+    qaList.push('');
+    qaList.push('IMPORTANT: If asked about employment gaps, acknowledge them honestly.');
+    qaList.push('Suggested response: "During that time, I [was focusing on personal development/further education/freelancing/etc.]"');
+    qaList.push('');
+  }
+
+  // Project-related leading questions
+  if (portfolioData.projects && portfolioData.projects.length > 0) {
+    qaList.push('═══════════════════════════════════════════════════');
+    qaList.push('PROJECT QUESTIONS & ANSWERS');
+    qaList.push('═══════════════════════════════════════════════════\n');
+
+    portfolioData.projects.slice(0, 3).forEach((proj: Project) => {
+      qaList.push(`Q: Tell me about your ${proj.title} project`);
+      qaList.push(`A: ${proj.description} I built this using ${Array.isArray(proj.technologies) ? proj.technologies.join(', ') : 'various technologies'}.`);
+      qaList.push('');
+    });
+
+    qaList.push(`Q: What projects are you most proud of?`);
+    qaList.push(`A: LEADING ANSWER: I'm particularly proud of ${portfolioData.projects[0].title}. ${portfolioData.projects[0].description} Would you like to know more about the technical challenges I faced?`);
+    qaList.push('');
+  }
 
   return qaList.join('\n');
 }
