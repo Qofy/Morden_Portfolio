@@ -42,6 +42,7 @@
     };
 
     chatStore.addMessage(userMessage);
+    const userInput = messageInput.trim();
     messageInput = '';
     chatStore.setLoading(true);
 
@@ -50,7 +51,19 @@
     setTimeout(scrollToBottom, 50);
 
     try {
-      const response = await sendMessageToOllama(userMessage.content, currentPortfolio);
+      // Check for keyword-based quick response first
+      const keywordResponse = detectKeywordResponse(userInput);
+
+      let response: string;
+      if (keywordResponse) {
+        // Use instant keyword response
+        response = keywordResponse;
+        // Small delay to feel natural
+        await new Promise(resolve => setTimeout(resolve, 300));
+      } else {
+        // Use Ollama for complex queries
+        response = await sendMessageToOllama(userInput, currentPortfolio);
+      }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -81,6 +94,135 @@
       event.preventDefault();
       sendMessage();
     }
+  }
+
+  /**
+   * Detect keywords in user message and provide quick focused responses
+   */
+  function detectKeywordResponse(message: string): string | null {
+    if (!currentPortfolio) return null;
+
+    const lowerMessage = message.toLowerCase().trim();
+    const words = lowerMessage.split(/\s+/);
+
+    // If message is too long (>5 words), don't treat as keyword query
+    if (words.length > 5) return null;
+
+    // Extract all skills/technologies from portfolio with extended metadata
+    const allSkills: {
+      skill: string;
+      proficiency: number;
+      years: number | null;
+      notes: string | null;
+      category: string;
+    }[] = [];
+
+    Object.entries(currentPortfolio.skills || {}).forEach(([category, skills]: [string, any]) => {
+      if (Array.isArray(skills)) {
+        skills.forEach((skill: string) => {
+          // Parse "Python: 90% | 5yrs | Built scalable APIs" format
+          const fullMatch = skill.match(/^(.+?)(?::\s*(\d+)%?)?(?:\s*\|\s*(\d+)yrs?)?(?:\s*\|\s*(.+))?$/);
+
+          if (fullMatch) {
+            allSkills.push({
+              skill: fullMatch[1].trim().toLowerCase(),
+              proficiency: fullMatch[2] ? parseInt(fullMatch[2], 10) : 0,
+              years: fullMatch[3] ? parseInt(fullMatch[3], 10) : null,
+              notes: fullMatch[4] ? fullMatch[4].trim() : null,
+              category
+            });
+          } else {
+            allSkills.push({
+              skill: skill.toLowerCase(),
+              proficiency: 0,
+              years: null,
+              notes: null,
+              category
+            });
+          }
+        });
+      }
+    });
+
+    // Check if message contains a skill keyword
+    for (const { skill, proficiency, years, notes, category } of allSkills) {
+      if (lowerMessage.includes(skill)) {
+        // Find where this skill was used
+        const workUses: string[] = [];
+        const projectUses: string[] = [];
+
+        // Check work experience
+        currentPortfolio.workExperience?.forEach((exp: any) => {
+          const tags = exp.tags || [];
+          const hasSkill = tags.some((tag: string) =>
+            tag.toLowerCase().includes(skill)
+          );
+          if (hasSkill) {
+            workUses.push(`${exp.position || exp.title} at ${exp.company} (${exp.period})`);
+          }
+        });
+
+        // Check projects
+        currentPortfolio.projects?.forEach((proj: any) => {
+          const techs = proj.technologies || [];
+          const hasSkill = techs.some((tech: string) =>
+            tech.toLowerCase().includes(skill)
+          );
+          if (hasSkill) {
+            projectUses.push(proj.title);
+          }
+        });
+
+        // Build professional response
+        let response = `# ${skill.charAt(0).toUpperCase() + skill.slice(1)}\n\n`;
+
+        // Expertise section
+        response += `## 📊 Expertise Level\n`;
+        if (proficiency > 0) {
+          const level = proficiency >= 80 ? 'Expert' : proficiency >= 60 ? 'Advanced' : proficiency >= 40 ? 'Intermediate' : 'Beginner';
+          response += `**Proficiency:** ${proficiency}% (${level})\n`;
+        }
+
+        if (years !== null) {
+          response += `**Experience:** ${years} year${years !== 1 ? 's' : ''}\n`;
+        }
+
+        response += `**Category:** ${category}\n\n`;
+
+        // Notes section
+        if (notes) {
+          response += `## 💡 Key Highlights\n${notes}\n\n`;
+        }
+
+        // Practical application section
+        if (workUses.length > 0 || projectUses.length > 0) {
+          response += `## 🚀 Practical Application\n`;
+
+          if (workUses.length > 0) {
+            response += `**Professional Experience:**\n`;
+            workUses.forEach(use => {
+              response += `• ${use}\n`;
+            });
+            response += `\n`;
+          }
+
+          if (projectUses.length > 0) {
+            response += `**Projects:**\n`;
+            projectUses.forEach(proj => {
+              response += `• ${proj}\n`;
+            });
+          }
+        }
+
+        if (workUses.length === 0 && projectUses.length === 0) {
+          response += `## 🎯 Background\nI have experience with ${skill} as part of my ${category} skill set.`;
+        }
+
+        return response;
+      }
+    }
+
+    return null;
   }
 </script>
 

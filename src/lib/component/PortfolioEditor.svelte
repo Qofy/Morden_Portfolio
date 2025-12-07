@@ -216,12 +216,25 @@
 
 
   function getSkillName(skill: string): string {
-    return skill.match(/^(.+?):\s*\d+%?$/)?.[1]?.trim() || skill;
+    // Extract skill name from formats like "Python: 90% | 5yrs | notes" or "Python: 90%" or "Python"
+    const match = skill.match(/^(.+?)(?::\s*\d+%?)?(?:\s*\|.*)?$/);
+    return match ? match[1].trim() : skill;
   }
 
   function getSkillProficiency(skill: string): number {
-    const match = skill.match(/^.+?:\s*(\d+)%?$/);
+    const match = skill.match(/:\s*(\d+)%/);
     return match ? parseInt(match[1], 10) : 0;
+  }
+
+  function getSkillYears(skill: string): number | null {
+    const match = skill.match(/\|\s*(\d+)yrs?/);
+    return match ? parseInt(match[1], 10) : null;
+  }
+
+  function getSkillNotes(skill: string): string | null {
+    // Match text after the second pipe separator
+    const match = skill.match(/\|\s*\d+yrs?\s*\|\s*(.+)$/);
+    return match ? match[1].trim() : null;
   }
 
   function arrayToString(arr: string[]): string {
@@ -431,11 +444,19 @@
                       <div class="tracker-item">
                         <div class="tracker-header">
                           <span class="tracker-name">{getSkillName(tag)}</span>
-                          <span class="tracker-percentage">{getSkillProficiency(tag) || 0}%</span>
+                          <div class="tracker-stats">
+                            {#if getSkillYears(tag)}
+                              <span class="tracker-years">{getSkillYears(tag)} yr{getSkillYears(tag) !== 1 ? 's' : ''}</span>
+                            {/if}
+                            <span class="tracker-percentage">{getSkillProficiency(tag) || 0}%</span>
+                          </div>
                         </div>
                         <div class="proficiency-bar">
                           <div class="proficiency-fill" style="width: {getSkillProficiency(tag) || 0}%"></div>
                         </div>
+                        {#if getSkillNotes(tag)}
+                          <p class="tracker-notes">{getSkillNotes(tag)}</p>
+                        {/if}
                       </div>
                     {/each}
                   </div>
@@ -525,11 +546,19 @@
                       <div class="tracker-item">
                         <div class="tracker-header">
                           <span class="tracker-name">{getSkillName(tech)}</span>
-                          <span class="tracker-percentage">{getSkillProficiency(tech) || 0}%</span>
+                          <div class="tracker-stats">
+                            {#if getSkillYears(tech)}
+                              <span class="tracker-years">{getSkillYears(tech)} yr{getSkillYears(tech) !== 1 ? 's' : ''}</span>
+                            {/if}
+                            <span class="tracker-percentage">{getSkillProficiency(tech) || 0}%</span>
+                          </div>
                         </div>
                         <div class="proficiency-bar">
                           <div class="proficiency-fill" style="width: {getSkillProficiency(tech) || 0}%"></div>
                         </div>
+                        {#if getSkillNotes(tech)}
+                          <p class="tracker-notes">{getSkillNotes(tech)}</p>
+                        {/if}
                       </div>
                     {/each}
                   </div>
@@ -583,7 +612,8 @@
                   placeholder="Python: 90%, JavaScript: 85%, React, Docker: 75%"
                 />
                 <small style="color: var(--text-secondary); font-size: 12px; margin-top: 4px; display: block;">
-                  Format: "Skill: percentage%" or just "Skill". Example: "Python: 90%, JavaScript, React: 85%"
+                  Format: "Skill: proficiency% | years | notes" (all parts optional)<br/>
+                  Examples: "Python: 90% | 5yrs | Built scalable APIs", "JavaScript: 85%", "React"
                 </small>
               </div>
 
@@ -593,11 +623,19 @@
                     <div class="tracker-item">
                       <div class="tracker-header">
                         <span class="tracker-name">{getSkillName(skill)}</span>
-                        <span class="tracker-percentage">{getSkillProficiency(skill) || 0}%</span>
+                        <div class="tracker-stats">
+                          {#if getSkillYears(skill)}
+                            <span class="tracker-years">{getSkillYears(skill)} yr{getSkillYears(skill) !== 1 ? 's' : ''}</span>
+                          {/if}
+                          <span class="tracker-percentage">{getSkillProficiency(skill) || 0}%</span>
+                        </div>
                       </div>
                       <div class="proficiency-bar">
                         <div class="proficiency-fill" style="width: {getSkillProficiency(skill) || 0}%"></div>
                       </div>
+                      {#if getSkillNotes(skill)}
+                        <p class="tracker-notes">{getSkillNotes(skill)}</p>
+                      {/if}
                     </div>
                   {/each}
                 </div>
@@ -931,10 +969,33 @@
     font-size: 14px;
   }
 
+  .tracker-stats {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tracker-years {
+    font-size: 11px;
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+
   .tracker-percentage {
     font-weight: 600;
     color: #fff;
     font-size: 13px;
+  }
+
+  .tracker-notes {
+    margin: 6px 0 0 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-style: italic;
+    line-height: 1.4;
   }
 
   .proficiency-bar {
