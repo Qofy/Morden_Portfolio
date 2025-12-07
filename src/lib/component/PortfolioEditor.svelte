@@ -44,6 +44,7 @@
         skills = data.skills || skills;
         socialLinks = data.socialLinks || [];
         blogPosts = data.blogPosts || [];
+        pdfSettings = data.pdfSettings || pdfSettings;
       }
     } catch (error) {
       console.error('Failed to fetch portfolio:', error);
@@ -72,6 +73,7 @@
           skills,
           socialLinks,
           blogPosts,
+          pdfSettings,
         }),
       });
 
