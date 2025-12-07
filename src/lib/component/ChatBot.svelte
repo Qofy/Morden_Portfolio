@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { X, Send, Loader, ChevronDown } from 'lucide-svelte';
+  import { X, Send, Loader, ChevronDown, Pin, Gift, Rocket } from 'lucide-svelte';
   import { chatStore, portfolioStore, type Message } from '$lib/stores';
   import { sendMessageToOllama } from '$lib/api';
 
@@ -119,16 +119,54 @@
       {#if $chatStore.messages.length === 0}
         <div class="welcome-message">
           <p>👋 Hi! I'm here to answer questions about my professional background.</p>
-          <p>Feel free to ask me about:</p>
-          <ul>
-            <li>"What is your work experience?"</li>
-            <li>"What technologies and skills do you have?"</li>
-            <li>"Tell me about your projects"</li>
-            <li>"What is your educational background?"</li>
-            <li>"Do you have any blog posts?"</li>
-          </ul>
+
+          {#if currentPortfolio}
+            <div class="timeline-section">
+              <h4><Pin/> Past</h4>
+              <p>
+                {#if currentPortfolio.workExperience && currentPortfolio.workExperience.length > 1}
+                  Previously worked as {currentPortfolio.workExperience[currentPortfolio.workExperience.length - 1]?.position || 'a professional'}
+                  at {currentPortfolio.workExperience[currentPortfolio.workExperience.length - 1]?.company || 'various companies'}
+                {:else if currentPortfolio.education && currentPortfolio.education.length > 0}
+                  Studied {currentPortfolio.education[0]?.degree || 'at university'}
+                  at {currentPortfolio.education[0]?.institution || 'an institution'}
+                {:else}
+                  Building experience in the field
+                {/if}
+              </p>
+            </div>
+
+            <div class="timeline-section">
+              <h4><Gift/> Present</h4>
+              <p>
+                {#if currentPortfolio.workExperience && currentPortfolio.workExperience.length > 0}
+                  Currently working as {currentPortfolio.workExperience[0]?.position || currentPortfolio.workExperience[0]?.title || 'a professional'}
+                  at {currentPortfolio.workExperience[0]?.company || 'a company'}
+                {:else if currentPortfolio.personal?.title}
+                  {currentPortfolio.personal.title}
+                {:else}
+                  Exploring opportunities
+                {/if}
+              </p>
+            </div>
+
+            <div class="timeline-section">
+              <h4><Rocket/> Future</h4>
+              <p>
+                {#if Object.keys(currentPortfolio.skills || {}).length > 0}
+                  Looking to leverage my skills in {Object.keys(currentPortfolio.skills).slice(0, 2).join(' and ')}
+                  to create impactful solutions
+                {:else}
+                  Excited to take on new challenges and opportunities
+                {/if}
+              </p>
+            </div>
+          {:else}
+            <p>Loading professional background...</p>
+          {/if}
+
           <p style="font-size: 0.85rem; opacity: 0.8; margin-top: 1rem;">
-            Note: I can only discuss information in my portfolio with 100% accuracy. If you ask about something not in my portfolio, I'll let you know.
+            Feel free to ask me about my work experience, skills, projects, or educational background.
           </p>
         </div>
       {/if}
@@ -304,6 +342,31 @@
 
   .welcome-message p {
     margin: 0 0 1rem 0;
+  }
+
+  .timeline-section {
+    background: rgba(255, 255, 255, 0.03);
+    border-left: 3px solid var(--text-secondary);
+    padding: 12px 16px;
+    margin: 12px 0;
+    border-radius: 4px;
+  }
+
+  .timeline-section h4 {
+    margin: 0 0 8px 0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+
+  .timeline-section p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
   }
 
   .welcome-message ul {
