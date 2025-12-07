@@ -164,6 +164,166 @@ function detectWorkGaps(workExperience: WorkExperience[]): string[] {
 }
 
 /**
+ * Generate cross-reference analysis to help Ollama understand skill overlaps
+ */
+function generateCrossReferenceAnalysis(portfolioData: PortfolioData): string {
+  const analysis: string[] = [];
+
+  // Extract all skills/technologies from portfolio with metadata
+  const allSkills = new Map<string, {
+    category: string;
+    proficiency: number | null;
+    years: number | null;
+    notes: string | null;
+    usedInJobs: string[];
+    usedInProjects: string[];
+  }>();
+
+  // Parse skills with extended metadata
+  Object.entries(portfolioData.skills || {}).forEach(([category, skills]: [string, string[]]) => {
+    if (Array.isArray(skills)) {
+      skills.forEach((skill: string) => {
+        const fullMatch = skill.match(/^(.+?)(?::\s*(\d+)%?)?(?:\s*\|\s*(\d+)yrs?)?(?:\s*\|\s*(.+))?$/);
+        if (fullMatch) {
+          const skillName = fullMatch[1].trim().toLowerCase();
+          allSkills.set(skillName, {
+            category,
+            proficiency: fullMatch[2] ? parseInt(fullMatch[2], 10) : null,
+            years: fullMatch[3] ? parseInt(fullMatch[3], 10) : null,
+            notes: fullMatch[4] ? fullMatch[4].trim() : null,
+            usedInJobs: [],
+            usedInProjects: []
+          });
+        }
+      });
+    }
+  });
+
+  // Cross-reference with work experience
+  portfolioData.workExperience?.forEach((exp: WorkExperience) => {
+    const company = exp.company || 'Unknown Company';
+    const position = exp.position || exp.title || 'Unknown Position';
+
+    if (exp.tags && Array.isArray(exp.tags)) {
+      exp.tags.forEach((tag: string) => {
+        // Parse tag format
+        const tagMatch = tag.match(/^(.+?)(?::\s*\d+%?)?(?:\s*\|.*)?$/);
+        const tagName = tagMatch ? tagMatch[1].trim().toLowerCase() : tag.toLowerCase();
+
+        if (allSkills.has(tagName)) {
+          allSkills.get(tagName)!.usedInJobs.push(`${position} at ${company}`);
+        }
+      });
+    }
+  });
+
+  // Cross-reference with projects
+  portfolioData.projects?.forEach((proj: Project) => {
+    const projectTitle = proj.title || 'Unknown Project';
+
+    if (proj.technologies && Array.isArray(proj.technologies)) {
+      proj.technologies.forEach((tech: string) => {
+        const techName = tech.toLowerCase();
+        if (allSkills.has(techName)) {
+          allSkills.get(techName)!.usedInProjects.push(projectTitle);
+        }
+      });
+    }
+  });
+
+  analysis.push('═══════════════════════════════════════════════════');
+  analysis.push('SKILL OVERLAP & CROSS-REFERENCE ANALYSIS');
+  analysis.push('═══════════════════════════════════════════════════\n');
+
+  // Build comprehensive skill analysis
+  allSkills.forEach((data, skillName) => {
+    analysis.push(`[SKILL: ${skillName.toUpperCase()}]`);
+    analysis.push(`  Category: ${data.category}`);
+
+    if (data.proficiency !== null) {
+      const level = data.proficiency >= 80 ? 'Expert' :
+                    data.proficiency >= 60 ? 'Advanced' :
+                    data.proficiency >= 40 ? 'Intermediate' : 'Beginner';
+      analysis.push(`  Proficiency: ${data.proficiency}% (${level})`);
+    }
+
+    if (data.years !== null) {
+      analysis.push(`  Experience: ${data.years} year${data.years !== 1 ? 's' : ''}`);
+    }
+
+    if (data.notes) {
+      analysis.push(`  Highlights: ${data.notes}`);
+    }
+
+    if (data.usedInJobs.length > 0) {
+      analysis.push(`  Used in Jobs: ${data.usedInJobs.join(', ')}`);
+    }
+
+    if (data.usedInProjects.length > 0) {
+      analysis.push(`  Used in Projects: ${data.usedInProjects.join(', ')}`);
+    }
+
+    // Connection strength indicator
+    const totalConnections = data.usedInJobs.length + data.usedInProjects.length;
+    if (totalConnections > 0) {
+      analysis.push(`  Connection Strength: ${totalConnections} reference${totalConnections !== 1 ? 's' : ''} across portfolio`);
+    }
+
+    analysis.push('');
+  });
+
+  // Timeline analysis: Track skill evolution
+  analysis.push('═══════════════════════════════════════════════════');
+  analysis.push('TECHNOLOGY TIMELINE EVOLUTION');
+  analysis.push('═══════════════════════════════════════════════════\n');
+
+  const workHistory = portfolioData.workExperience || [];
+  if (workHistory.length > 1) {
+    analysis.push('Career Progression & Technology Stack Evolution:\n');
+
+    workHistory.forEach((exp: WorkExperience, index: number) => {
+      const position = exp.position || exp.title || 'Unknown';
+      const company = exp.company || 'Unknown';
+      const period = exp.period || 'Unknown period';
+      const technologies = exp.tags || [];
+
+      analysis.push(`[${workHistory.length - index}] ${position} at ${company} (${period})`);
+      if (technologies.length > 0) {
+        analysis.push(`    Tech Stack: ${technologies.join(', ')}`);
+      }
+      analysis.push('');
+    });
+  }
+
+  // Education to career mapping
+  analysis.push('═══════════════════════════════════════════════════');
+  analysis.push('EDUCATION TO CAREER PROGRESSION');
+  analysis.push('═══════════════════════════════════════════════════\n');
+
+  if (portfolioData.education && portfolioData.education.length > 0) {
+    const education = portfolioData.education[0];
+    const degree = education.degree || 'Unknown degree';
+    const institution = education.institution || 'Unknown institution';
+
+    analysis.push(`Education Background: ${degree} from ${institution}`);
+
+    if (workHistory.length > 0) {
+      const firstJob = workHistory[workHistory.length - 1];
+      analysis.push(`First Role After Education: ${firstJob.position || firstJob.title} at ${firstJob.company}`);
+
+      const currentJob = workHistory[0];
+      if (workHistory.length > 1) {
+        analysis.push(`Current Role: ${currentJob.position || currentJob.title} at ${currentJob.company}`);
+        analysis.push(`Career Growth: ${workHistory.length} position${workHistory.length !== 1 ? 's' : ''} since graduation`);
+      }
+    }
+    analysis.push('');
+  }
+
+  return analysis.join('\n');
+}
+
+/**
  * Generate Q&A preparation based on portfolio data with leading answers
  */
 function generateQAPreparation(portfolioData: PortfolioData): string {
@@ -357,6 +517,9 @@ export async function sendMessageToOllama(userMessage: string, portfolioData?: a
         // Generate Q&A preparation
         const qaPreparation = generateQAPreparation(portfolioData);
 
+        // Generate cross-reference analysis for skill overlaps
+        const crossReferenceAnalysis = generateCrossReferenceAnalysis(portfolioData);
+
         // Interview-Style Guard: Strict portfolio-only assistant
         const portfolioContext = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -386,6 +549,10 @@ ${skillsFormatted}
 ${portfolioData.socialLinks?.map((link: any) => `  ${link.name}: ${link.url}`).join('\n') || 'No social links'}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CROSS-REFERENCE ANALYSIS (SKILL OVERLAPS & CONNECTIONS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${crossReferenceAnalysis}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 QUESTION & ANSWER PREPARATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ${qaPreparation}
@@ -407,13 +574,24 @@ ${qaPreparation}
 
    DO NOT ADD: technologies, frameworks, details, or anything not explicitly written
 
-3. VERIFY BEFORE ANSWERING:
+3. USE CROSS-REFERENCE ANALYSIS FOR COMPREHENSIVE ANSWERS:
+   When asked about a specific skill or technology, reference the CROSS-REFERENCE ANALYSIS section to:
+   - Mention proficiency level and years of experience
+   - Connect skills to specific jobs and projects where used
+   - Provide comprehensive context showing skill evolution across career
+
+   Example:
+   Question: "Tell me about your Python experience"
+   ✅ RIGHT: "I have [X] years of Python experience at [proficiency]% proficiency. I used Python as [position] at [company] and also in my [project name] project."
+   ❌ WRONG: "I'm experienced in Python" (too vague, doesn't use cross-reference data)
+
+4. VERIFY BEFORE ANSWERING:
    - Is the company name EXACTLY in the portfolio? If not, DON'T mention it
    - Is the technology EXACTLY listed? If not, DON'T mention it
    - Is the date EXACTLY written? If not, DON'T mention it
    - Are you COPYING word-for-word from the portfolio? If not, STOP
 
-4. RESPONSE FORMAT:
+5. RESPONSE FORMAT:
    Give DIRECT answers only. NO steps, NO thinking process.
 
    Example:
@@ -421,12 +599,12 @@ ${qaPreparation}
    ✅ RIGHT: "I worked as Backend Developer at XYZ Corp during 2019 - 2020. I built web apps."
    ❌ WRONG: "Step 1: Check portfolio... Step 2: Copy exact... Answer: I worked..."
 
-5. IF ASKED ABOUT SPECIFIC YEAR/COMPANY/ROLE:
+6. IF ASKED ABOUT SPECIFIC YEAR/COMPANY/ROLE:
    - First, verify it EXISTS in portfolio below
    - If it exists, COPY it exactly
    - If it doesn't exist, say: "I don't see that in my portfolio. Let me tell you what I DO have: [list what's actually there]"
 
-6. FORBIDDEN WORDS/PHRASES (Never use unless in portfolio):
+7. FORBIDDEN WORDS/PHRASES (Never use unless in portfolio):
    ❌ "building an e-commerce platform"
    ❌ "using React, Next.js, Django, Python, Docker"
    ❌ "allowed users to"
@@ -441,6 +619,7 @@ ${portfolioContext}
 - Did I copy job title EXACTLY? (YES/NO)
 - Did I copy dates EXACTLY? (YES/NO)
 - Did I copy description EXACTLY? (YES/NO)
+- Did I reference CROSS-REFERENCE ANALYSIS for skill connections? (YES/NO if skill question)
 - Did I add ANY extra details? (MUST BE NO)
 
 If ANY answer is NO, your response is WRONG. Fix it.
