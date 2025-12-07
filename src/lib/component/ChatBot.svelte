@@ -158,7 +158,8 @@
             tag.toLowerCase().includes(skill)
           );
           if (hasSkill) {
-            workUses.push(`${exp.position || exp.title} at ${exp.company} (${exp.period})`);
+            const period = exp.period || (exp.starting_year && exp.end_year ? `${exp.starting_year} - ${exp.end_year}` : '');
+            workUses.push(`${exp.position || exp.title} at ${exp.company} (${period})`);
           }
         });
 

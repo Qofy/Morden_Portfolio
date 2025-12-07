@@ -96,13 +96,22 @@ export function printToPDF(): void {
 /**
  * Generates a professional resume-style PDF with clean white background
  * @param username - The username for the filename
+ * @param pdfSettings - PDF generation settings (what to include)
  */
-export async function generatePortfolioPDF(username: string): Promise<void> {
+export async function generatePortfolioPDF(username: string, pdfSettings?: any): Promise<void> {
   // Get portfolio data from store
   const portfolioElement = document.querySelector('.portfolio-view') as HTMLElement;
   if (!portfolioElement) {
     throw new Error('Portfolio container not found');
   }
+
+  // Default settings
+  const settings = pdfSettings || {
+    includePhoto: true,
+    includeBio: true,
+    includeEmail: true,
+    includeLocation: true
+  };
 
   // Create a temporary resume-style container
   const resumeContainer = document.createElement('div');
@@ -125,30 +134,38 @@ export async function generatePortfolioPDF(username: string): Promise<void> {
   const personalBio = document.querySelector('.hero .description')?.textContent || '';
   const personalEmail = document.querySelector('a[href^="mailto:"]')?.textContent || '';
   const personalLocation = document.querySelector('.hero')?.textContent?.match(/📍\s*([^•]+)/)?.[1]?.trim() || '';
+  const personalPhoto = document.querySelector('.hero img')?.getAttribute('src') || '';
 
-  // Build resume HTML
+  // Build resume HTML with optional photo on the right
   resumeContainer.innerHTML = `
-    <div style="margin-bottom: 30px; border-bottom: 3px solid #333; padding-bottom: 15px;">
-      <h1 style="margin: 0 0 5px 0; font-size: 32px; color: #000;">${personalName}</h1>
-      <p style="margin: 0 0 8px 0; font-size: 16px; color: #555;">${personalTitle}</p>
-      <p style="margin: 0; font-size: 12px; color: #666;">
-        ${personalEmail ? `✉ ${personalEmail}` : ''}
-        ${personalLocation && personalEmail ? ' | ' : ''}
-        ${personalLocation ? `📍 ${personalLocation}` : ''}
-      </p>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 3px solid #333; padding-bottom: 15px;">
+      <div style="flex: 1;">
+        <h1 style="margin: 0 0 5px 0; font-size: 32px; color: #000;">${personalName}</h1>
+        <p style="margin: 0 0 8px 0; font-size: 16px; color: #555;">${personalTitle}</p>
+        <p style="margin: 0; font-size: 12px; color: #666;">
+          ${settings.includeEmail && personalEmail ? `✉ ${personalEmail}` : ''}
+          ${settings.includeLocation && settings.includeEmail && personalLocation && personalEmail ? ' | ' : ''}
+          ${settings.includeLocation && personalLocation ? `📍 ${personalLocation}` : ''}
+        </p>
+      </div>
+      ${settings.includePhoto && personalPhoto ? `
+      <div style="margin-left: 20px;">
+        <img src="${personalPhoto}" alt="Profile" style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #333;" />
+      </div>
+      ` : ''}
     </div>
 
-    ${personalBio ? `
+    ${settings.includeBio && personalBio ? `
     <div style="margin-bottom: 25px;">
       <h2 style="font-size: 18px; margin: 0 0 10px 0; color: #000; border-bottom: 2px solid #666; padding-bottom: 5px;">PROFESSIONAL SUMMARY</h2>
       <p style="margin: 0; font-size: 11px; color: #333; text-align: justify;">${personalBio}</p>
     </div>
     ` : ''}
 
-    ${getWorkExperienceHTML()}
+    ${getWorkExperienceHTML(pdfSettings)}
     ${getSkillsHTML()}
-    ${getEducationHTML()}
-    ${getProjectsHTML()}
+    ${getEducationHTML(pdfSettings)}
+    ${getProjectsHTML(pdfSettings)}
   `;
 
   document.body.appendChild(resumeContainer);
@@ -170,11 +187,20 @@ export async function generatePortfolioPDF(username: string): Promise<void> {
 /**
  * Extract and format work experience section
  */
-function getWorkExperienceHTML(): string {
+function getWorkExperienceHTML(pdfSettings?: any): string {
   const workSection = document.querySelector('#work-experience, #experience');
   if (!workSection) return '';
 
-  const experiences = Array.from(workSection.querySelectorAll('.timeline-item, .experience-item, .work-item'));
+  let experiences = Array.from(workSection.querySelectorAll('.timeline-item, .experience-item, .work-item'));
+
+  // Filter experiences if using portfolio editor data
+  if (pdfSettings?.workExperience) {
+    experiences = experiences.filter((exp, index) => {
+      const workData = pdfSettings.workExperience[index];
+      return workData?.includeInPdf !== false;
+    });
+  }
+
   if (experiences.length === 0) return '';
 
   let html = `
@@ -258,11 +284,20 @@ function getSkillsHTML(): string {
 /**
  * Extract and format education section
  */
-function getEducationHTML(): string {
+function getEducationHTML(pdfSettings?: any): string {
   const eduSection = document.querySelector('#education');
   if (!eduSection) return '';
 
-  const educations = Array.from(eduSection.querySelectorAll('.timeline-item, .education-item, .edu-item'));
+  let educations = Array.from(eduSection.querySelectorAll('.timeline-item, .education-item, .edu-item'));
+
+  // Filter educations if using portfolio editor data
+  if (pdfSettings?.education) {
+    educations = educations.filter((_, index) => {
+      const eduData = pdfSettings.education[index];
+      return eduData?.includeInPdf !== false;
+    });
+  }
+
   if (educations.length === 0) return '';
 
   let html = `
@@ -297,11 +332,20 @@ function getEducationHTML(): string {
 /**
  * Extract and format projects section
  */
-function getProjectsHTML(): string {
+function getProjectsHTML(pdfSettings?: any): string {
   const projectsSection = document.querySelector('#projects');
   if (!projectsSection) return '';
 
-  const projects = Array.from(projectsSection.querySelectorAll('.project-card, .project-item'));
+  let projects = Array.from(projectsSection.querySelectorAll('.project-card, .project-item'));
+
+  // Filter projects if using portfolio editor data
+  if (pdfSettings?.projects) {
+    projects = projects.filter((_, index) => {
+      const projectData = pdfSettings.projects[index];
+      return projectData?.includeInPdf !== false;
+    });
+  }
+
   if (projects.length === 0) return '';
 
   let html = `

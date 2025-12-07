@@ -19,6 +19,14 @@
   let socialLinks: any[] = [];
   let blogPosts: any[] = [];
 
+  // PDF inclusion flags
+  let pdfSettings = {
+    includePhoto: true,
+    includeBio: true,
+    includeEmail: true,
+    includeLocation: true,
+  };
+
   onMount(async () => {
     await fetchPortfolioData();
   });
@@ -110,12 +118,14 @@
 
   function addWorkExperience() {
     workExperience = [...workExperience, {
-      period: '',
+      starting_year: '',
+      end_year: '',
       position: '',
       company: '',
       location: '',
       description: [],
-      tags: []
+      tags: [],
+      includeInPdf: true
     }];
   }
 
@@ -130,7 +140,8 @@
       degree: '',
       institution: '',
       location: '',
-      description: []
+      description: [],
+      includeInPdf: true
     }];
   }
 
@@ -145,7 +156,8 @@
       technologies: [],
       image: '',
       liveUrl: '',
-      githubUrl: ''
+      githubUrl: '',
+      includeInPdf: true
     }];
   }
 
@@ -278,6 +290,25 @@
       <!-- Personal Information -->
       <section class="editor-section">
         <h3>Personal Information</h3>
+        <div class="pdf-options-section">
+          <h4>PDF Resume Options</h4>
+          <label class="checkbox-label">
+            <input type="checkbox" bind:checked={pdfSettings.includePhoto} />
+            <span>Include Profile Photo</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" bind:checked={pdfSettings.includeBio} />
+            <span>Include Bio/Summary</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" bind:checked={pdfSettings.includeEmail} />
+            <span>Include Email</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" bind:checked={pdfSettings.includeLocation} />
+            <span>Include Location</span>
+          </label>
+        </div>
         <div class="form-grid">
           <div class="form-group">
             <label>Full Name</label>
@@ -399,10 +430,20 @@
         </div>
         {#each workExperience as work, i}
           <div class="item-card">
+            <div class="pdf-checkbox-header">
+              <label class="checkbox-label">
+                <input type="checkbox" bind:checked={work.includeInPdf} />
+                <span>Include in PDF Resume</span>
+              </label>
+            </div>
             <div class="form-grid">
               <div class="form-group">
-                <label>Period</label>
-                <input type="text" bind:value={work.period} placeholder="e.g., 2020-2023" />
+                <label>Starting Year</label>
+                <input type="text" bind:value={work.starting_year} placeholder="e.g., 2020" />
+              </div>
+              <div class="form-group">
+                <label>End Year</label>
+                <input type="text" bind:value={work.end_year} placeholder="e.g., 2023 or Present" />
               </div>
               <div class="form-group">
                 <label>Position</label>
@@ -476,6 +517,12 @@
         </div>
         {#each education as edu, i}
           <div class="item-card">
+            <div class="pdf-checkbox-header">
+              <label class="checkbox-label">
+                <input type="checkbox" bind:checked={edu.includeInPdf} />
+                <span>Include in PDF Resume</span>
+              </label>
+            </div>
             <div class="form-grid">
               <div class="form-group">
                 <label>Period</label>
@@ -519,6 +566,12 @@
         </div>
         {#each projects as project, i}
           <div class="item-card">
+            <div class="pdf-checkbox-header">
+              <label class="checkbox-label">
+                <input type="checkbox" bind:checked={project.includeInPdf} />
+                <span>Include in PDF Resume</span>
+              </label>
+            </div>
             <div class="form-grid">
               <div class="form-group">
                 <label>Title</label>
@@ -1029,6 +1082,56 @@
   @keyframes shimmer {
     0% { transform: translateX(-100%); }
     100% { transform: translateX(100%); }
+  }
+
+  /* PDF Checkbox Styles */
+  .pdf-checkbox-header {
+    margin-bottom: 12px;
+    padding: 10px;
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 6px;
+    border-left: 3px solid #667eea;
+  }
+
+  .pdf-options-section {
+    margin-bottom: 20px;
+    padding: 16px;
+    background: rgba(102, 126, 234, 0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+  }
+
+  .pdf-options-section h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    user-select: none;
+  }
+
+  .checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #667eea;
+  }
+
+  .checkbox-label span {
+    font-weight: 500;
+  }
+
+  .checkbox-label:hover {
+    color: #667eea;
   }
 
   .editor-footer {
