@@ -96,7 +96,19 @@
     <div class="chat-header">
       <div class="header-content">
         <ChevronDown size={20} />
-        <h3>Portfolio Assistant</h3>
+        {#if currentPortfolio?.personal?.photo}
+          <img src={currentPortfolio.personal.photo} alt="Profile" class="profile-picture" />
+        {:else}
+          <div class="profile-placeholder">
+            {currentPortfolio?.personal?.name?.charAt(0) || 'P'}
+          </div>
+        {/if}
+        <div class="profile-info">
+          <h3>{currentPortfolio?.personal?.name || 'Portfolio Assistant'}</h3>
+          {#if currentPortfolio?.personal?.title}
+            <span class="professional-title">{currentPortfolio.personal.title}</span>
+          {/if}
+        </div>
       </div>
       <button class="close-btn" on:click={() => chatStore.closeChat()}>
         <X size={20} />
@@ -201,13 +213,47 @@
   .header-content {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
+  }
+
+  .profile-picture {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .profile-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    color: white;
+    font-size: 1.1rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .profile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
   }
 
   .chat-header h3 {
     margin: 0;
     font-size: 1rem;
     font-weight: 600;
+  }
+
+  .professional-title {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 400;
   }
 
   .close-btn {
