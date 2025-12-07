@@ -2,15 +2,39 @@
   import { X, Send, Loader, ChevronDown, Pin, Gift, Rocket } from 'lucide-svelte';
   import { chatStore, portfolioStore, type Message } from '$lib/stores';
   import { sendMessageToOllama } from '$lib/api';
+  import { onMount } from 'svelte';
 
   let messageInput = '';
   let chatContainer: HTMLDivElement;
   let shouldAutoScroll = true;
   let currentPortfolio: any = null;
+  let visitorId = '';
+  let username = '';
 
   portfolioStore.subscribe((data) => {
     currentPortfolio = data;
   });
+
+  onMount(() => {
+    // Generate or retrieve visitor ID
+    let storedVisitorId = localStorage.getItem('visitor_id');
+    if (!storedVisitorId) {
+      storedVisitorId = generateVisitorId();
+      localStorage.setItem('visitor_id', storedVisitorId);
+    }
+    visitorId = storedVisitorId;
+
+    // Get username from URL path
+    const path = window.location.pathname;
+    const pathSegments = path.split('/').filter(Boolean);
+    if (pathSegments.length > 0) {
+      username = pathSegments[0];
+    }
+  });
+
+  function generateVisitorId(): string {
+    return `visitor_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
 
   function scrollToBottom() {
     if (chatContainer && shouldAutoScroll) {
@@ -74,6 +98,9 @@
 
       chatStore.addMessage(assistantMessage);
       setTimeout(scrollToBottom, 50);
+
+      // Save conversation to backend
+      await saveConversation([userMessage, assistantMessage]);
     } catch (error) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -86,6 +113,28 @@
       setTimeout(scrollToBottom, 50);
     } finally {
       chatStore.setLoading(false);
+    }
+  }
+
+  async function saveConversation(messages: Message[]) {
+    if (!username || !visitorId) return;
+
+    try {
+      await fetch('http://localhost:3500/api/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username,
+          visitorId,
+          messages: messages.map(msg => ({
+            role: msg.role,
+            content: msg.content
+          }))
+        })
+      });
+    } catch (error) {
+      console.error('Failed to save conversation:', error);
+      // Don't show error to user, just log it
     }
   }
 
